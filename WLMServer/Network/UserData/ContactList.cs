@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,6 +56,25 @@ namespace WLMServer.Network.UserData
             {
                 contacts.Add(username, new Contact(username, isBlocked, isAccepted));
             }
+        }
+
+        /// <summary>
+        /// Points an existing entry at a new name, keeping its blocked and accepted flags. Used
+        /// when a contact changes the name they sign in with.
+        /// </summary>
+        public bool RenameUser(string oldUsername, string newUsername)
+        {
+            Contact contact;
+
+            if (!contacts.TryGetValue(oldUsername, out contact))
+            {
+                return false;
+            }
+
+            contacts.Remove(oldUsername);
+            contacts[newUsername] = new Contact(newUsername, contact.isBlocked, contact.isAccepted);
+
+            return true;
         }
 
         public void RemoveUser(string username)

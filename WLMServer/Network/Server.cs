@@ -26,7 +26,8 @@ namespace WLMServer.Network
         public string version = "1.0.0";
         private Dictionary<Connection, ConnectedUser> users;
         private PacketHandler authentication, addNewContact, addNewContactResponse, personalUserUpdate,
-            deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus, transferFile;
+            deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus, transferFile,
+            changeUsername;
         private AvatarHttpServer avatarHttpServer;
         public AccountManager accountManager;
 
@@ -43,6 +44,7 @@ namespace WLMServer.Network
             transferNudge = new PacketHandling.TransferNudge(this);
             transferWritingStatus = new PacketHandling.TransferWritingStatus(this);
             transferFile = new PacketHandling.TransferFile(this);
+            changeUsername = new PacketHandling.ChangeUsername(this);
 
             accountManager = new AccountManager();
 
@@ -275,6 +277,35 @@ namespace WLMServer.Network
 
                     SendPacket(contactConnection, PacketName.sendContact.ToString(), new UserInfo(sendUser.id, sendUserName, sendUser.comment,
                         sendUserStatus, sendUser.avatar, sendUserIsBlocked));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Moves a signed in user to a new name. The account row is already renamed by this point;
+        /// this fixes up what is held in memory, including the contact lists of everyone currently
+        /// online who has this user, which were loaded when they signed in.
+        /// </summary>
+        public void RenameUser(Connection connection, string oldId, string newId)
+        {
+            lock (users)
+            {
+                ConnectedUser renamed = users[connection];
+
+                // UserInfo's id is read only, so the record is rebuilt around the new name.
+                users[connection] = new ConnectedUser(
+                    new UserInfo(newId, renamed.user.name, renamed.user.comment, renamed.user.status,
+                        renamed.user.avatar, renamed.user.blocked),
+                    renamed.contactList);
+
+                foreach (KeyValuePair<Connection, ConnectedUser> user in users)
+                {
+                    if (user.Key == connection)
+                    {
+                        continue;
+                    }
+
+                    user.Value.contactList.RenameUser(oldId, newId);
                 }
             }
         }

@@ -34,17 +34,19 @@ namespace WLMClient.UI.Controls.Dialogs
         private Button btnSave;
         private Button btnCancel;
         private ComboBox cmbLanguage;
+        private TextBox txtUsername;
 
-        public FrmOptions() : base(440, 322, Language.Get("options.title"))
+        public FrmOptions() : base(440, 378, Language.Get("options.title"))
         {
             InitializeComponent();
 
             txtName.Text = Personal.USER_INFO.name;
+            txtUsername.Text = Personal.USER_INFO.id;
         }
 
         private void InitializeComponent()
         {
-            AddGroupBox(Language.Get("options.title"), 15, 16, 410, 288);
+            AddGroupBox(Language.Get("options.title"), 15, 16, 410, 344);
 
             // Left column: the picture, framed the way it appears elsewhere, with its button
             // directly beneath. Right column: the fields, each under its own heading.
@@ -80,28 +82,49 @@ namespace WLMClient.UI.Controls.Dialogs
 
             Add(txtName, 196, 72);
 
+            TextBlock usernameHeading = CreateLabel(Language.Get("options.username"),
+                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+            CapWidth(usernameHeading, 220);
+            Add(usernameHeading, 196, 116);
+
+            txtUsername = new TextBox
+            {
+                Width = 220,
+                Height = 28,
+                MaxLength = 29,
+                FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
+                FontSize = 12 * PointToPixel,
+                BorderThickness = new Thickness(1),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0x9A, 0x9A)),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(4, 0, 4, 0)
+            };
+
+            ToolTip.SetTip(txtUsername, Language.Get("options.username.hint"));
+
+            Add(txtUsername, 196, 146);
+
+            TextBlock usernameHint = CreateLabel(Language.Get("options.username.hint"),
+                "Segoe UI, Helvetica, Arial", 8.5, new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)));
+            usernameHint.TextWrapping = TextWrapping.Wrap;
+            usernameHint.MaxWidth = 220;
+            Add(usernameHint, 196, 178);
+
             TextBlock languageHeading = CreateLabel(Language.Get("options.language"),
                 "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
             CapWidth(languageHeading, 220);
-            Add(languageHeading, 196, 116);
+            Add(languageHeading, 196, 212);
 
-            AddLanguagePicker(196, 146);
-
-            // A quiet reminder of which account these settings belong to.
-            TextBlock account = CreateLabel(
-                Language.Format("options.signedinas", Personal.USER_INFO == null ? "" : Personal.USER_INFO.id),
-                "Segoe UI, Helvetica, Arial", 9, new SolidColorBrush(Color.FromRgb(0x77, 0x77, 0x77)));
-            CapWidth(account, 220);
-            Add(account, 196, 184);
+            AddLanguagePicker(196, 242);
 
             btnCancel = CreateButton(Language.Get("dialog.close"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
             btnCancel.Click += btnCancel_Click;
-            Add(btnCancel, 196, 210);
+            Add(btnCancel, 196, 288);
 
             btnSave = CreateButton(Language.Get("dialog.save"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
             btnSave.Click += btnSave_Click;
             btnSave.IsDefault = true;
-            Add(btnSave, 311, 210);
+            Add(btnSave, 311, 288);
         }
 
         /// <summary>
@@ -337,6 +360,16 @@ namespace WLMClient.UI.Controls.Dialogs
             Personal.USER_INFO.name = txtName.Text ?? "";
 
             Client.SendUserUpdate();
+
+            // The sign in name is the account's identity, so the server has to agree to the change
+            // and answers separately; everything else here applies immediately.
+            string requestedUsername = (txtUsername.Text ?? "").Trim();
+
+            if (requestedUsername.Length > 0 &&
+                !string.Equals(requestedUsername, Personal.USER_INFO.id, StringComparison.OrdinalIgnoreCase))
+            {
+                Client.RequestUsernameChange(requestedUsername);
+            }
 
             this.Close();
         }

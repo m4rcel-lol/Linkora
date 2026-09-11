@@ -18,10 +18,12 @@
     <Compile Include="Data\Packets\LoginResult.cs" />
     <Compile Include="Data\Packets\Message.cs" />
     <Compile Include="Data\Packets\UserInfo.cs" />
+    <Compile Include="Data\Packets\UsernameChangeResult.cs" />
     <Compile Include="Data\Packets\WritingStatus.cs" />
     <Compile Include="Data\Serializer.cs" />
     <Compile Include="Enums\FriendRequestResponseCode.cs" />
     <Compile Include="Enums\PacketName.cs" />
+    <Compile Include="Enums\UsernameChangeResultCode.cs" />
     <Compile Include="Enums\UserStatus.cs" />
   </ItemGroup>
 

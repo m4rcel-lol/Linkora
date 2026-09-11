@@ -27,7 +27,7 @@ namespace WLMClient.Network
         public static ConnectionInfo connectionInfo { get; set; }
 
         private static PacketHandler connectionedClosed, authentication, receiveContact, receiveMessage, receiveNudge,
-            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile;
+            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile, receiveUsernameChange;
 
         public static void Load(MainWindow mainWindow)
         {
@@ -41,6 +41,7 @@ namespace WLMClient.Network
             connectionedClosed = new ConnectionClosed(mainWindow);
             receiveWritingStatus = new ReceiveWritingStatus(mainWindow);
             receiveFile = new ReceiveFile(mainWindow);
+            receiveUsernameChange = new ReceiveUsernameChange(mainWindow);
 
             Personal.USER_CONTACTS = new List<UserInfo>();
             Personal.USER_INFO = null;
@@ -145,6 +146,12 @@ namespace WLMClient.Network
         public static void SendFile(string userID, string fileName, byte[] data)
         {
             SendPacket(PacketName.sendFileTransfer.ToString(), new FileTransfer(userID, fileName, data));
+        }
+
+        /// <summary>Asks the server to change the name this account signs in with.</summary>
+        public static void RequestUsernameChange(string newUsername)
+        {
+            SendPacket(PacketName.requestUsernameChange.ToString(), newUsername);
         }
 
         public static void SendWritingStatus(string userID, bool isWriting)

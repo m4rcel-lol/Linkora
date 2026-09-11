@@ -24,6 +24,8 @@ namespace WLMData.Enums
         sendWritingStatus,
         sendGameRequest,
         sendPersonalUserUpdate,
-        sendFileTransfer
+        sendFileTransfer,
+        requestUsernameChange,
+        sendUsernameChangeResult
     };
 }

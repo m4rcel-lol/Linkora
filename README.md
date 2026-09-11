@@ -281,6 +281,25 @@ people sharing an installation keep separate lists.
 
 ---
 
+# Changing your sign in name
+
+**Options** lets you change both names an account has:
+
+* **Display name** is what your contacts see. It changes immediately.
+* **Sign in name** is what you type to sign in and what people add you by. Changing it asks the
+  server, which renames the account and every reference to it — the contact list of everyone who
+  has you, and any outstanding friend requests — in a single database transaction, so a failure
+  part way through cannot leave people pointing at a name that no longer exists.
+
+A sign in name can be up to 29 characters of letters, digits, dots, dashes and underscores. The
+limited set is deliberate: contact lists are stored as `[name,blocked,accepted]` text, so a name
+containing a bracket or a comma would corrupt every list referring to it. If the name is already
+taken the server refuses and nothing changes.
+
+Saved sign in details are updated to the new name, so "Remember me" keeps working.
+
+---
+
 # Languages
 
 The interface language is chosen in **Options → Language**. It applies immediately and is
