@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="Data\Deserialize.cs" />
+    <Compile Include="Data\Packets\CallSignal.cs" />
     <Compile Include="Data\Packets\FileTransfer.cs" />
     <Compile Include="Data\Packets\FriendRequestResponse.cs" />
     <Compile Include="Data\Packets\LoginRequest.cs" />
@@ -21,6 +22,7 @@
     <Compile Include="Data\Packets\UsernameChangeResult.cs" />
     <Compile Include="Data\Packets\WritingStatus.cs" />
     <Compile Include="Data\Serializer.cs" />
+    <Compile Include="Enums\CallSignalType.cs" />
     <Compile Include="Enums\FriendRequestResponseCode.cs" />
     <Compile Include="Enums\PacketName.cs" />
     <Compile Include="Enums\UsernameChangeResultCode.cs" />

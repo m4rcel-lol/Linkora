@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="WLMClient.UI.Windows.CallWindow"
+        Title="Call" Width="620" Height="460" MinWidth="460" MinHeight="360"
+        WindowStartupLocation="CenterScreen" Background="#FF15181D">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="86" />
+        </Grid.RowDefinitions>
+
+        <!-- Where the other person's video will appear. Until there is video it shows their
+             picture, the way a call looks before the camera is on. -->
+        <Grid Grid.Row="0" x:Name="stage">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                    <GradientStop Color="#FF222830" Offset="0" />
+                    <GradientStop Color="#FF15181D" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                <Grid Width="140" Height="126" HorizontalAlignment="Center">
+                    <Image x:Name="imageAvatar" Stretch="Fill" Width="98" Height="98"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Image x:Name="imageAvatarFrame" Stretch="None" />
+                </Grid>
+
+                <TextBlock x:Name="txtName" HorizontalAlignment="Center" FontFamily="Segoe UI"
+                           FontSize="21" Foreground="#FFF2F4F7" />
+
+                <TextBlock x:Name="txtState" HorizontalAlignment="Center" FontFamily="Segoe UI"
+                           FontSize="13" Foreground="#FF9AA6B2" />
+            </StackPanel>
+
+            <!-- Self view, the small tile a call normally shows in the corner. -->
+            <Border x:Name="selfView" Width="132" Height="92" Margin="0 0 16 16"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Background="#FF1B2027" BorderBrush="#FF2E3742" BorderThickness="1"
+                    CornerRadius="4">
+                <TextBlock x:Name="txtSelfView" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontFamily="Segoe UI" FontSize="11" Foreground="#FF7E8A96"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="8" />
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1" Background="#FF1B2027" BorderBrush="#FF2A313A" BorderThickness="0 1 0 0">
+            <StackPanel x:Name="controlBar" Orientation="Horizontal" HorizontalAlignment="Center"
+                        VerticalAlignment="Center" Spacing="14" />
+        </Border>
+    </Grid>
+</Window>

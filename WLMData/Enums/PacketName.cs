@@ -26,6 +26,7 @@ namespace WLMData.Enums
         sendPersonalUserUpdate,
         sendFileTransfer,
         requestUsernameChange,
-        sendUsernameChangeResult
+        sendUsernameChangeResult,
+        sendCallSignal
     };
 }

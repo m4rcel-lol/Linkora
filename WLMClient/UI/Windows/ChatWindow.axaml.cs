@@ -130,7 +130,40 @@ namespace WLMClient.UI.Windows
             btnAttach.PointerEntered += btnAttach_MouseEnter;
             btnAttach.PointerExited += btnAttach_MouseLeave;
             btnAttach.PointerReleased += btnAttach_PreviewMouseLeftButtonUp;
+
+            btnCall.PointerEntered += btnCall_MouseEnter;
+            btnCall.PointerExited += btnCall_MouseLeave;
+            btnCall.PointerReleased += btnCall_PreviewMouseLeftButtonUp;
         }
+
+        #region Calls
+
+        private void btnCall_MouseEnter(object sender, PointerEventArgs e)
+        {
+            btnCall.BorderBrush = new BrushConverter().ConvertFrom("#AFAFAF");
+            btnCall.Background = new BrushConverter().ConvertFrom("#EDEDED");
+        }
+
+        private void btnCall_MouseLeave(object sender, PointerEventArgs e)
+        {
+            btnCall.BorderBrush = Brushes.Transparent;
+            btnCall.Background = Brushes.Transparent;
+        }
+
+        private void btnCall_PreviewMouseLeftButtonUp(object sender, PointerReleasedEventArgs e)
+        {
+            if ((UserStatus)contactUserInfo.status == UserStatus.Offline)
+            {
+                MessageBox.Show(Language.Format("call.offline", contactUserInfo.name),
+                    Language.Get("call.cannotcall"), MessageBoxButton.OK, MessageBoxImage.Information);
+
+                return;
+            }
+
+            CallManager.Place(contactUserInfo);
+        }
+
+        #endregion
 
         #region Attachments
 
@@ -341,6 +374,7 @@ namespace WLMClient.UI.Windows
             ToolTip.SetTip(btnSmiley, Language.Get("chat.smilies"));
             ToolTip.SetTip(btnNudge, Language.Get("chat.nudge"));
             ToolTip.SetTip(btnAttach, Language.Get("chat.sendfile"));
+            ToolTip.SetTip(btnCall, Language.Get("call.start"));
 
             txtStatus.Text = "(" + Language.GetStatus((UserStatus)contactUserInfo.status) + ")";
         }
@@ -359,6 +393,9 @@ namespace WLMClient.UI.Windows
             composeTail.IsVisible = !Config.Theme.IsDark;
             composeTailDark.IsVisible = Config.Theme.IsDark;
             composeTailDark.Background = Config.Theme.ComposeBackground;
+
+            btnAttachGlyph.Fill = Config.Theme.TextSecondary;
+            btnCallGlyph.Fill = Config.Theme.TextSecondary;
 
             txtSend.Background = Config.Theme.ComposeBackground;
             txtSend.Foreground = Config.Theme.ChatText;

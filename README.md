@@ -12,6 +12,7 @@ A Windows Live Messenger style instant messenger, running on **macOS**, **Linux*
 + Avatars / profile pictures shown in the contact list
 + Interface in your own language
 + Light and dark themes
++ Calls (setup and ringing; audio and video not carried yet)
 + Quick Message
 + Emoticons
 + Web Registration
@@ -344,6 +345,25 @@ Placeholders such as `{0}` are filled in by the application and must be kept. `
 ` starts a new
 line. Lines beginning with `#` are comments. Any key you leave out falls back to English, so a
 partial translation is perfectly usable.
+
+---
+
+# Calls
+
+The phone button in a conversation places a call. The call window is the familiar one: the other
+person's picture and name on a dark stage, a self view tile, and a control bar with microphone,
+camera, screen sharing and hang up.
+
+**What works today.** Placing a call, ringing the other side, answering, declining, hanging up,
+and the call timer. The server keeps track of who is on a call, so a second caller is told the
+line is busy rather than making someone's client ring twice, and calling somebody who is not
+signed in says so. If a client disappears mid call the other side is told the call ended rather
+than being left on a call that cannot finish.
+
+**What does not work yet.** No audio, camera or screen sharing is carried. .NET has no built in
+capture for any of them on any platform, so each needs a native media library bundled per
+platform. Those buttons are dimmed and say as much when pressed, rather than looking usable and
+doing nothing.
 
 ---
 

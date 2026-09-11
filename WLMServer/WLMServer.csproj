@@ -27,6 +27,7 @@
     <Compile Include="Network\PacketHandling\ChangeUsername.cs" />
     <Compile Include="Network\PacketHandling\DeleteAndBlockContact.cs" />
     <Compile Include="Network\PacketHandling\PersonalUserUpdate.cs" />
+    <Compile Include="Network\PacketHandling\TransferCall.cs" />
     <Compile Include="Network\PacketHandling\TransferFile.cs" />
     <Compile Include="Network\PacketHandling\TransferMessage.cs" />
     <Compile Include="Network\PacketHandling\TransferNudge.cs" />
