@@ -1,8 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Avalonia.Threading;
+
+using WLMClient.Compat;
 
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
@@ -24,7 +28,7 @@ namespace WLMClient.Network.PacketHandling
         {
             closeHandler = new NetworkComms.ConnectionEstablishShutdownDelegate((Connection connection) =>
             {
-                mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+                mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
                     mainWindow.ConnectionClosedLogOut();
                 }));

@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:WLMClient.UI.Controls"
+             mc:Ignorable="d"
+             x:Class="WLMClient.UI.Controls.Emoticons"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Border BorderThickness="1" BorderBrush="#DEDEDE" Background="White">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <TextBlock VerticalAlignment="Bottom" Margin="15 0 0 0" FontFamily="Segoe UI" FontSize="15"
+                           Foreground="#FF355A88" FontWeight="Normal">Emoticons</TextBlock>
+            </Grid>
+
+            <Grid Grid.Row="1" x:Name="gridEmoticons" Margin="15 15 15 15">
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

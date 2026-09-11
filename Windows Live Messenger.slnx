@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="WLMClient/WLMClient.csproj" />
+  <Project Path="WLMData/WLMData.csproj" />
+  <Project Path="WLMNet/WLMNet.csproj" />
+  <Project Path="WLMServer/WLMServer.csproj" />
+</Solution>

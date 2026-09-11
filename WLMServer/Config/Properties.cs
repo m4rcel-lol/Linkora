@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +19,7 @@ namespace WLMServer.Config
         public static string AVATAR_IMAGE_URL;
         public static string AVATAR_IMAGE_UPLOAD_URL;
         public static int BROADCAST_INTERVAL;
+        public static int AVATAR_HTTP_PORT;
+        public static string AVATAR_STORAGE_PATH;
     }
 }

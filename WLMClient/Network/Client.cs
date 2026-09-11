@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 using System.Net;
+
+using WLMClient.Compat;
+
 using WLMData;
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Tools;
@@ -24,7 +27,7 @@ namespace WLMClient.Network
         public static ConnectionInfo connectionInfo { get; set; }
 
         private static PacketHandler connectionedClosed, authentication, receiveContact, receiveMessage, receiveNudge,
-            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate;
+            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile;
 
         public static void Load(MainWindow mainWindow)
         {
@@ -37,6 +40,7 @@ namespace WLMClient.Network
             receiveContactDelete = new ReceiveContactDelete(mainWindow);
             connectionedClosed = new ConnectionClosed(mainWindow);
             receiveWritingStatus = new ReceiveWritingStatus(mainWindow);
+            receiveFile = new ReceiveFile(mainWindow);
 
             Personal.USER_CONTACTS = new List<UserInfo>();
             Personal.USER_INFO = null;
@@ -63,8 +67,10 @@ namespace WLMClient.Network
             }
             catch
             {
-                System.Windows.MessageBox.Show("Server configuration is wrong.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                Environment.Exit(0);
+                // Without a usable address there is nothing to connect to, so close once the user
+                // has acknowledged the message.
+                MessageBox.ShowThen("Server configuration is wrong.", "", MessageBoxImage.Error,
+                    () => Environment.Exit(0));
             }
         }
 
@@ -120,6 +126,11 @@ namespace WLMClient.Network
         public static void SendNudge(string userID)
         {
             SendPacket(PacketName.sendNudge.ToString(), userID);
+        }
+
+        public static void SendFile(string userID, string fileName, byte[] data)
+        {
+            SendPacket(PacketName.sendFileTransfer.ToString(), new FileTransfer(userID, fileName, data));
         }
 
         public static void SendWritingStatus(string userID, bool isWriting)

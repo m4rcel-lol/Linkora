@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WLMClient.Notification"
+        mc:Ignorable="d"
+        x:Class="WLMClient.Notification.Popup"
+        Title="Notification" Height="116" Width="201"
+        SystemDecorations="None" TransparencyLevelHint="Transparent" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" CanResize="False" Cursor="Hand">
+    <Grid x:Name="rootGrid" UseLayoutRounding="True">
+
+        <!-- Notification area -->
+        <Border x:Name="notificationBorder" BorderThickness="1" CornerRadius="3" Height="116" Width="201" BorderBrush="Black">
+            <StackPanel Margin="2 32 2 2" VerticalAlignment="Center">
+                <TextBlock x:Name="line1" UseLayoutRounding="True"
+                           RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                           Text="x" Foreground="#FF3D4D5D" FontSize="12" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" FontWeight="Bold"></TextBlock>
+                <TextBlock x:Name="line2" UseLayoutRounding="True"
+                           RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                           Text="has just signed in" Foreground="#FF3D4D5D" FontSize="12"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Normal"></TextBlock>
+            </StackPanel>
+            <Border.Background>
+                <LinearGradientBrush EndPoint="50%,100%" StartPoint="50%,0%">
+                    <GradientStop Color="#FF8CC4F2" Offset="0" />
+                    <GradientStop Color="#FF8CC4F2" Offset="0.273" />
+                    <GradientStop Color="#FFCBE1F8" Offset="0.378" />
+                    <GradientStop Color="#FFCBE1F8" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" OffsetX="0" OffsetY="0" Opacity="0.70" Color="Black" />
+            </Border.Effect>
+        </Border>
+        <Image Source="avares://WLMClient/Content/Icons/33.png" Width="24" Height="24"
+               HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8"></Image>
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="38 12 8 8" Text="Linkora"></TextBlock>
+    </Grid>
+</Window>

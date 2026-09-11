@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WLMClient"
+        mc:Ignorable="d"
+        x:Class="WLMClient.UI.Windows.MainWindow"
+        Height="564" Width="494" MinWidth="500" MinHeight="675" Title="Linkora">
+    <Grid>
+        <Grid x:Name="gridWindow">
+            <StackPanel x:Name="controlPanel">
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

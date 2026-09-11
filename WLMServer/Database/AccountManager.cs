@@ -115,6 +115,13 @@ namespace WLMServer.Database
 
             reader.Close();
 
+            if (userInfo == null)
+            {
+                // No such account. Callers already handle a null user, and dereferencing here
+                // would take the whole server down.
+                return null;
+            }
+
             if (!Config.Properties.AVATAR_ENABLE)
             {
                 userInfo.avatar = "";

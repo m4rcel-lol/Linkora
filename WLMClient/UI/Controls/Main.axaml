@@ -1,0 +1,165 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:WLMClient.UI.Controls"
+             mc:Ignorable="d"
+             x:Class="WLMClient.UI.Controls.Main"
+             d:DesignHeight="519" d:DesignWidth="602" x:Name="mainControl"
+             KeyboardNavigation.TabNavigation="None" IsTabStop="False">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="90" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="130" />
+        </Grid.RowDefinitions>
+
+        <Image x:Name="background" Height="90" VerticalAlignment="Top" UseLayoutRounding="True"
+               RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+               Stretch="Fill" StretchDirection="Both"></Image>
+
+        <Border Grid.Row="0" BorderThickness="0 0 0 1" BorderBrush="WhiteSmoke">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" OffsetX="0.17" OffsetY="0.98" Color="Black" Opacity="1" />
+            </Border.Effect>
+        </Border>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <TextBlock x:Name="txtName" Text="" FontSize="20" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   FontFamily="Segoe UI" Margin="-10 10 0 0" FontWeight="Bold" Foreground="#FFFEFEFE">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="5" OffsetX="0.17" OffsetY="0.98" Color="Black" Opacity="1" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+
+                    <Grid Grid.Column="1">
+                        <TextBlock x:Name="txtStatus" Text="" FontSize="14" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   FontFamily="Segoe UI" Margin="10 16 0 0" FontWeight="Normal" Foreground="White">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="5" OffsetX="0.17" OffsetY="0.98" Color="Black" Opacity="1" />
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+
+                    <Grid Grid.Column="2">
+                        <Image x:Name="btnArrowStatus" Width="7" Height="3" VerticalAlignment="Top" Cursor="Hand"
+                               Margin="8 23 0 0" HorizontalAlignment="Left"
+                               Source="avares://WLMClient/Content/Interface/arrow.png"
+                               UseLayoutRounding="True" Opacity="1"
+                               RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                               Stretch="Fill" StretchDirection="Both">
+                            <Image.ContextMenu>
+                                <ContextMenu x:Name="contextMenuArrow">
+                                    <MenuItem Header="Available" x:Name="menuItemArrowAvailable">
+                                        <MenuItem.Icon>
+                                            <Image x:Name="menuItemIconArrowAvailable" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Busy" x:Name="menuItemArrowBusy">
+                                        <MenuItem.Icon>
+                                            <Image x:Name="menuItemIconArrowBusy" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Away" x:Name="menuItemArrowAway">
+                                        <MenuItem.Icon>
+                                            <Image x:Name="menuItemIconArrowAway" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="Appear Offline" x:Name="menuItemArrowOffline">
+                                        <MenuItem.Icon>
+                                            <Image x:Name="menuItemIconArrowOffline" Width="16" Height="16" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Options" x:Name="menuItemArrowOptions">
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="Exit Messenger" x:Name="menuItemArrowExit">
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Image.ContextMenu>
+                        </Image>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Border x:Name="borderAddFriend" Width="20" Height="20" Margin="0 0 6 8" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                        <Border.Background>
+                            <ImageBrush Source="avares://WLMClient/Content/Icons/Icon_84.png" Stretch="None" />
+                        </Border.Background>
+                        <Button x:Name="btnAddFriend" ToolTip.Tip="Add a friend..." Classes="transparent"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Width="16" Height="16" Margin="0"></Button>
+                    </Border>
+
+                    <TextBox Text="Share a quick message" IsTabStop="False" KeyboardNavigation.TabNavigation="None"
+                             x:Name="txtQuickMessage" MaxWidth="250" MaxLength="35" BorderThickness="0" Padding="2"
+                             TextAlignment="Center" Background="#FFF7F7F7" FontSize="12" HorizontalAlignment="Left"
+                             VerticalAlignment="Top" Margin="-10 0 0 0" Foreground="#FF363636">
+                        <TextBox.Effect>
+                            <DropShadowEffect BlurRadius="2" OffsetX="0" OffsetY="0" Color="#FF525252" Opacity="0.5" />
+                        </TextBox.Effect>
+                    </TextBox>
+                </Grid>
+            </Grid>
+
+
+            <Grid Grid.Column="0">
+                <Grid VerticalAlignment="Top" Margin="-10 -12 0 0" UseLayoutRounding="True" HorizontalAlignment="Left">
+                    <Grid Width="98" Height="98" Margin="0 0 3 6" >
+                        <Image x:Name="imagePartnerAvatar" Stretch="Fill" Width="50" Height="50" UseLayoutRounding="True"
+                               RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased">
+                        </Image>
+                    </Grid>
+                    <Image Width="68" Height="66" x:Name="imagePartnerFrame" Stretch="None" UseLayoutRounding="True"
+                           RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased" />
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1" x:Name="listContactBorder" UseLayoutRounding="True" Background="#FCFCFC">
+            <TextBlock x:Name="txtFriends" Text="Friends (0/0)" Background="#FCFCFC" Margin="7 5 0 0" FontSize="17"
+                       FontWeight="Regular" Foreground="#FF2A2A2A" VerticalAlignment="Top"></TextBlock>
+            <TreeView IsTabStop="False" KeyboardNavigation.TabNavigation="None" Focusable="False"
+                      Margin="0, 35, 0, 0" Background="#FCFCFC" x:Name="contactListView"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalAlignment="Left"
+                      BorderThickness="0" BorderBrush="#FF111111" VerticalAlignment="Top">
+            </TreeView>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Border BorderThickness="2" BorderBrush="#FF555961" VerticalAlignment="Top" HorizontalAlignment="Center"
+                    Width="234" Height="60" Margin="0 10 0 0">
+                <Image VerticalAlignment="Top" Width="234" Margin="0 0 0 0" Height="60"
+                       Source="avares://WLMClient/Content/Other/BottomAd.png" Stretch="None" UseLayoutRounding="True"
+                       RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"></Image>
+            </Border>
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="50%,100%" StartPoint="50%,0%">
+                    <GradientStop Color="#FFD9EBF4" Offset="0" />
+                    <GradientStop Color="#FFC5E3F0" Offset="0.493" />
+                </LinearGradientBrush>
+            </Grid.Background>
+        </Grid>
+        <Border Grid.Row="2" BorderThickness="0 2 0 0" BorderBrush="#FFC1D3E1"></Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:WLMClient.UI.Controls"
+             xmlns:compat="clr-namespace:WLMClient.Compat"
+             mc:Ignorable="d"
+             x:Class="WLMClient.UI.Controls.Login"
+             d:DesignHeight="831.148" d:DesignWidth="348.566">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="195" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Image x:Name="background" Height="110" VerticalAlignment="Top" UseLayoutRounding="True"
+                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                   Stretch="Fill" StretchDirection="Both"></Image>
+
+            <Grid VerticalAlignment="Top" Margin="0 17 4 0">
+                <Grid Width="98" Height="98" Margin="0 0 6 8" >
+                    <Image x:Name="imagePartnerAvatar" Stretch="None" UseLayoutRounding="True"
+                           RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased" />
+                </Grid>
+
+                <Image Width="140" Height="126" x:Name="imagePartnerFrame" Stretch="None" UseLayoutRounding="True"
+                       RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased" />
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="210" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+
+            <Grid Grid.Row="0">
+                <TextBlock Text="Sign in" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 11 0 0" FontSize="18" Foreground="#FF355A88"></TextBlock>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 40 0 20">
+                    <TextBlock Text="Sign in with your Linkora ID. Don't have one? " Padding="0 0 0 0" Foreground="#FF333333"></TextBlock>
+                    <TextBlock x:Name="txtSignUp" Text="Sign up." Padding="0 0 0 0" Foreground="#FF355A88"
+                               Cursor="Hand" TextDecorations="Underline" Background="Transparent"></TextBlock>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="236" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="1" CornerRadius="2" BorderBrush="#FFD8E8F0" BorderThickness="1"></Border>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Image x:Name="checkAvailable" Width="16" Height="16" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   Stretch="Fill" StretchDirection="Both"></Image>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <Image x:Name="checkBusy" Width="16" Height="16" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   Stretch="Fill" StretchDirection="Both"></Image>
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <Image x:Name="checkAway" Width="16" Height="16" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   Stretch="Fill" StretchDirection="Both"></Image>
+                        </Grid>
+                        <Grid Grid.Column="3">
+                            <Image x:Name="checkOffline" Width="16" Height="16" UseLayoutRounding="True"
+                                   RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
+                                   Stretch="Fill" StretchDirection="Both"></Image>
+                        </Grid>
+
+                        <Border x:Name="borderAvailable" CornerRadius="2" Grid.Column="0" Width="16" Height="16" BorderBrush="#FFC7C7C7" BorderThickness="0"></Border>
+                        <Border x:Name="borderBusy" CornerRadius="2" Grid.Column="1" Width="16" Height="16" BorderBrush="#FFC7C7C7" BorderThickness="0"></Border>
+                        <Border x:Name="borderAway" CornerRadius="2" Grid.Column="2" Width="16" Height="16" BorderBrush="#FFC7C7C7" BorderThickness="0"></Border>
+                        <Border x:Name="borderOffline" CornerRadius="2" Grid.Column="3" Width="16" Height="16" BorderBrush="#FFC7C7C7" BorderThickness="0"></Border>
+                    </Grid>
+
+                    <TextBox x:Name="txtId" Height="24" Grid.Row="0" VerticalAlignment="Center" Margin="5 5 5 0" FontSize="13" VerticalContentAlignment="Center"></TextBox>
+                    <compat:PasswordBox x:Name="txtPass" Height="24" Grid.Row="1" VerticalAlignment="Center" Margin="5 5 5 0" VerticalContentAlignment="Center"></compat:PasswordBox>
+
+                    <CheckBox x:Name="checkRememberMe" Grid.Row="3" VerticalAlignment="Center" Margin="10 0 0 0" Content="Remember me" Foreground="#FF333333"></CheckBox>
+                    <CheckBox x:Name="checkRememberMyPassword" Grid.Row="4" VerticalAlignment="Center" Margin="10 0 0 0" Content="Remember my password" Foreground="#FF333333"></CheckBox>
+                    <CheckBox x:Name="checkSignInAutomatically" Grid.Row="5" VerticalAlignment="Center" Margin="10 0 0 0" Content="Sign me in automatically" Foreground="#FF333333"></CheckBox>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Button x:Name="btnLogin" Width="72" Height="23" Content="Sign in" Margin="0 18 0 0"
+                        HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></Button>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="50%,100%" StartPoint="50%,0%">
+                    <GradientStop Color="White" Offset="0" />
+                    <GradientStop Color="#FFC9E7F3" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+        </Grid>
+    </Grid>
+</UserControl>

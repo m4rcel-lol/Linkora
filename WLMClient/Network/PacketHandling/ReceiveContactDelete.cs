@@ -1,8 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Avalonia.Threading;
+
+using WLMClient.Compat;
 
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
@@ -32,7 +36,7 @@ namespace WLMClient.Network.PacketHandling
         {
             base.PostLoginAction(packet);
 
-            mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+            mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
             {
                 mainWindow.GetMainPage().RemoveContact(((UserInfo)packet).id);
             }));

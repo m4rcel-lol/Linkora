@@ -1,0 +1,143 @@
+using System;
+
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
+
+using WLMClient.Compat;
+
+namespace WLMClient.UI.Controls.Dialogs
+{
+    /// <summary>
+    /// Shared base for the three dialogs that used to be Windows Forms. They keep the original's
+    /// fixed pixel layout, so each one fills a <see cref="Canvas"/> at the same coordinates the
+    /// designer file used.
+    /// </summary>
+    public abstract class DialogWindow : Window
+    {
+        /// <summary>Windows Forms sizes fonts in points; Avalonia uses device independent pixels.</summary>
+        protected const double PointToPixel = 96.0 / 72.0;
+
+        protected Canvas Root { get; private set; }
+
+        protected DialogWindow(int clientWidth, int clientHeight, string title)
+        {
+            Title = title;
+            Width = clientWidth;
+            Height = clientHeight;
+            CanResize = false;
+            ShowInTaskbar = false;
+            Background = Brushes.White;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            SizeToContent = SizeToContent.Manual;
+
+            Root = new Canvas
+            {
+                Width = clientWidth,
+                Height = clientHeight,
+                Background = Brushes.White
+            };
+
+            Content = Root;
+        }
+
+        protected static void Place(Control control, double left, double top)
+        {
+            Canvas.SetLeft(control, left);
+            Canvas.SetTop(control, top);
+        }
+
+        protected void Add(Control control, double left, double top)
+        {
+            Place(control, left, top);
+            Root.Children.Add(control);
+        }
+
+        /// <summary>Recreates the flat group box the Windows Forms designer drew.</summary>
+        protected void AddGroupBox(string header, double left, double top, double width, double height)
+        {
+            Border box = new Border
+            {
+                Width = width,
+                Height = height,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0xA0, 0xA0, 0xA0)),
+                BorderThickness = new Thickness(1)
+            };
+
+            Add(box, left, top);
+
+            Border headerBackground = new Border
+            {
+                Background = Brushes.White,
+                Height = 14
+            };
+
+            TextBlock headerText = new TextBlock
+            {
+                Text = header,
+                FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
+                FontSize = 12 * PointToPixel,
+                FontWeight = FontWeight.Bold,
+                Foreground = Brushes.Black,
+                Background = Brushes.White,
+                Padding = new Thickness(4, 0, 4, 0)
+            };
+
+            Add(headerText, left + 6, top - 11);
+        }
+
+        protected static TextBlock CreateLabel(string text, string fontFamily, double pointSize, IBrush foreground)
+        {
+            return new TextBlock
+            {
+                Text = text,
+                FontFamily = new FontFamily(fontFamily),
+                FontSize = pointSize * PointToPixel,
+                Foreground = foreground ?? Brushes.Black
+            };
+        }
+
+        protected static Button CreateButton(string text, double width, double height, IBrush background, IBrush foreground)
+        {
+            return new Button
+            {
+                Content = text,
+                Width = width,
+                Height = height,
+                Background = background,
+                Foreground = foreground ?? Brushes.Black,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0x9A, 0x9A)),
+                BorderThickness = new Thickness(1),
+                FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
+                FontSize = 9.75 * PointToPixel,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center
+            };
+        }
+
+        /// <summary>
+        /// Shows the dialog modally without blocking the caller. WPF's blocking ShowDialog has no
+        /// safe equivalent on the UI thread here, and no caller used the return value.
+        /// </summary>
+        public void ShowDialog(Action closed)
+        {
+            if (closed != null)
+            {
+                Closed += (s, e) => closed();
+            }
+
+            Window owner = MessageBox.GetActiveWindow();
+
+            if (owner != null && owner.IsVisible && !ReferenceEquals(owner, this))
+            {
+                ShowDialog(owner);
+            }
+            else
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                Show();
+            }
+        }
+    }
+}

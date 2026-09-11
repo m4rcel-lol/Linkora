@@ -1,8 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Avalonia.Threading;
+
+using WLMClient.Compat;
 
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
@@ -30,7 +34,7 @@ namespace WLMClient.Network.PacketHandling
                 Personal.USER_INFO = loginResult.userInfo;
                 Config.Properties.AVATAR_IMAGE_UPLOAD_URL = loginResult.avatarUploadAddress;
 
-                mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+                mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                 {
                     mainWindow.LoginSuccess();
                 }));
@@ -39,17 +43,17 @@ namespace WLMClient.Network.PacketHandling
             {
                 if (!loginResult.loginSuccess)
                 {
-                    mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+                    mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                     {
-                        System.Windows.MessageBox.Show("We can't sign you into Windows Live Messenger", "Wrong username / password", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        MessageBox.Show("We can't sign you into Linkora", "Wrong username / password", MessageBoxButton.OK, MessageBoxImage.Error);
                     }));
                 }
 
                 if (!loginResult.verifiedVersion)
                 {
-                    mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+                    mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                     {
-                        System.Windows.MessageBox.Show("This version of Windows Live Messenger is outdated.", "Outdated software", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        MessageBox.Show("This version of Linkora is outdated.", "Outdated software", MessageBoxButton.OK, MessageBoxImage.Error);
                     }));
                 }
             }

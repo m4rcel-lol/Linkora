@@ -1,15 +1,85 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Xml;
 
 namespace WLMClient.Config
 {
     class SaveDataManager
     {
+        private static string saveFilePath;
+
+        /// <summary>
+        /// Where the saved sign in details live. Next to the executable as on Windows, unless that
+        /// location is read only (an installed macOS app bundle, for example), in which case the
+        /// user's own configuration directory is used.
+        /// </summary>
+        public static string SaveFilePath
+        {
+            get
+            {
+                if (saveFilePath == null)
+                {
+                    saveFilePath = ResolveSaveFilePath();
+                }
+
+                return saveFilePath;
+            }
+        }
+
+        private static string ResolveSaveFilePath()
+        {
+            const string fileName = "SaveData.xml";
+
+            string beside = Path.Combine(AppContext.BaseDirectory, fileName);
+
+            if (IsDirectoryWritable(AppContext.BaseDirectory))
+            {
+                return beside;
+            }
+
+            string root = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "Library", "Application Support")
+                : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            string directory = Path.Combine(root, "WLMClient");
+
+            try
+            {
+                Directory.CreateDirectory(directory);
+
+                return Path.Combine(directory, fileName);
+            }
+            catch
+            {
+                return beside;
+            }
+        }
+
+        private static bool IsDirectoryWritable(string directory)
+        {
+            try
+            {
+                string probe = Path.Combine(directory, Path.GetRandomFileName());
+
+                using (FileStream stream = File.Create(probe, 1, FileOptions.DeleteOnClose))
+                {
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static SaveData GetConfiguration()
         {
             try
@@ -19,7 +89,7 @@ namespace WLMClient.Config
 
                 configDoc = new XmlDocument();
 
-                configDoc.Load("SaveData.xml");
+                configDoc.Load(SaveFilePath);
                 configNode = configDoc.DocumentElement.SelectNodes("/config")[0];
 
                 string rememberId = configNode.SelectSingleNode("OPTION_REMEMBER_ID").InnerText;
@@ -44,9 +114,13 @@ namespace WLMClient.Config
             XmlDocument doc = new XmlDocument();
             doc.LoadXml("<?xml version=\"1.0\" encoding=\"ISO - 8859 - 1\"?><config><OPTION_REMEMBER_ID>0</OPTION_REMEMBER_ID><OPTION_REMEMBER_PASSWORD>0</OPTION_REMEMBER_PASSWORD><OPTION_LOGIN_AUTO>0</OPTION_LOGIN_AUTO><SAVE_ID></SAVE_ID><SAVE_PASS></SAVE_PASS></config>"); //Your string here
             
-            XmlTextWriter writer = new XmlTextWriter("SaveData.xml", null);
-            writer.Formatting = Formatting.Indented;
-            doc.Save(writer);
+            // The writer owns the file handle, so it has to be closed before anything reads the
+            // file back; without this the settings could be left unflushed.
+            using (XmlTextWriter writer = new XmlTextWriter(SaveFilePath, null))
+            {
+                writer.Formatting = Formatting.Indented;
+                doc.Save(writer);
+            }
         }
 
         public static void SaveConfiguration(SaveData configuration)
@@ -58,7 +132,7 @@ namespace WLMClient.Config
 
                 configDoc = new XmlDocument();
 
-                configDoc.Load("SaveData.xml");
+                configDoc.Load(SaveFilePath);
 
                 configNode = configDoc.DocumentElement.SelectNodes("/config")[0];
 
@@ -68,7 +142,7 @@ namespace WLMClient.Config
                 configNode.SelectSingleNode("SAVE_ID").InnerText = configuration.saveId;
                 configNode.SelectSingleNode("SAVE_PASS").InnerText = Base64Encode(configuration.savePass);
 
-                configDoc.Save("SaveData.xml");
+                configDoc.Save(SaveFilePath);
             }
             catch (Exception e)
             {

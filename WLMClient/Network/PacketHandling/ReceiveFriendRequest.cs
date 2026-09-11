@@ -1,8 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Avalonia.Threading;
+
+using WLMClient.Compat;
 
 using NetworkCommsDotNet;
 using NetworkCommsDotNet.Connections;
@@ -10,7 +14,7 @@ using NetworkCommsDotNet.Connections;
 using WLMClient.UI.Windows;
 using WLMData.Enums;
 using WLMData.Data.Packets;
-using WLMClient.UI.Controls.WinForms;
+using WLMClient.UI.Controls.Dialogs;
 
 namespace WLMClient.Network.PacketHandling
 {
@@ -32,10 +36,10 @@ namespace WLMClient.Network.PacketHandling
         {
             base.PostLoginAction(packet);
 
-            mainWindow.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+            mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
             {
                 FrmFriendRequest friendRequest = new FrmFriendRequest((UserInfo)packet);
-                friendRequest.ShowDialog();
+                friendRequest.ShowDialog(null);
             }));
         }
     }

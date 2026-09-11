@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 
 using WLMClient.Resource.Images;
 
@@ -14,38 +13,26 @@ namespace WLMClient.Layout
 {
     class Images
     {
-        public static BitmapImage BITMAP_AVATAR_FRAME = new BitmapImage();
-        public static BitmapImage BITMAP_CHAT_WINDOW_BUTTONS = new BitmapImage();
-        public static BitmapImage BITMAP_EMOTICONS = new BitmapImage();
-        public static BitmapImage BITMAP_WINDOW_SMALL_ICONS = new BitmapImage();
-        public static BitmapImage BITMAP_CHAT_PARAGRAPH_RECTANGLE = new BitmapImage();
+        // Sprite sheets the rest of the UI crops individual icons out of.
+        public static Bitmap BITMAP_AVATAR_FRAME;
+        public static Bitmap BITMAP_CHAT_WINDOW_BUTTONS;
+        public static Bitmap BITMAP_EMOTICONS;
+        public static Bitmap BITMAP_WINDOW_SMALL_ICONS;
+        public static Bitmap BITMAP_CHAT_PARAGRAPH_RECTANGLE;
+
+        /// <summary>Loads an image embedded in the application.</summary>
+        public static Bitmap LoadBitmap(string url)
+        {
+            return new Bitmap(AssetLoader.Open(new Uri(url)));
+        }
 
         public static void Load()
         {
-            BITMAP_AVATAR_FRAME.BeginInit();
-            BITMAP_AVATAR_FRAME.UriSource = new Uri(Identifiers.AVATAR_FRAMES_PATH, UriKind.Absolute);
-            BITMAP_AVATAR_FRAME.CacheOption = BitmapCacheOption.OnLoad;
-            BITMAP_AVATAR_FRAME.EndInit();
-
-            BITMAP_CHAT_WINDOW_BUTTONS.BeginInit();
-            BITMAP_CHAT_WINDOW_BUTTONS.UriSource = new Uri(Identifiers.CHAT_WINDOW_BUTTONS, UriKind.Absolute);
-            BITMAP_CHAT_WINDOW_BUTTONS.CacheOption = BitmapCacheOption.OnLoad;
-            BITMAP_CHAT_WINDOW_BUTTONS.EndInit();
-
-            BITMAP_EMOTICONS.BeginInit();
-            BITMAP_EMOTICONS.UriSource = new Uri(Identifiers.EMOTICONS, UriKind.Absolute);
-            BITMAP_EMOTICONS.CacheOption = BitmapCacheOption.OnLoad;
-            BITMAP_EMOTICONS.EndInit();
-
-            BITMAP_WINDOW_SMALL_ICONS.BeginInit();
-            BITMAP_WINDOW_SMALL_ICONS.UriSource = new Uri(Identifiers.MAIN_WINDOW_SMALL_ICONS, UriKind.Absolute);
-            BITMAP_WINDOW_SMALL_ICONS.CacheOption = BitmapCacheOption.OnLoad;
-            BITMAP_WINDOW_SMALL_ICONS.EndInit();
-
-            BITMAP_CHAT_PARAGRAPH_RECTANGLE.BeginInit();
-            BITMAP_CHAT_PARAGRAPH_RECTANGLE.UriSource = new Uri(Identifiers.CHAT_PARAGRAPH_RECTANGLE, UriKind.Absolute);
-            BITMAP_CHAT_PARAGRAPH_RECTANGLE.CacheOption = BitmapCacheOption.OnLoad;
-            BITMAP_CHAT_PARAGRAPH_RECTANGLE.EndInit();
+            BITMAP_AVATAR_FRAME = LoadBitmap(Identifiers.AVATAR_FRAMES_PATH);
+            BITMAP_CHAT_WINDOW_BUTTONS = LoadBitmap(Identifiers.CHAT_WINDOW_BUTTONS);
+            BITMAP_EMOTICONS = LoadBitmap(Identifiers.EMOTICONS);
+            BITMAP_WINDOW_SMALL_ICONS = LoadBitmap(Identifiers.MAIN_WINDOW_SMALL_ICONS);
+            BITMAP_CHAT_PARAGRAPH_RECTANGLE = LoadBitmap(Identifiers.CHAT_PARAGRAPH_RECTANGLE);
 
             Emoticons.INDEX_IN_IMAGE[":)"] = 1;
             Emoticons.INDEX_IN_IMAGE[":d"] = 2;

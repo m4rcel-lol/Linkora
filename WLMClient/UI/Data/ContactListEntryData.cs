@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.Windows.Controls;
+using Avalonia.Controls;
+
+using RichTextBox = WLMClient.Compat.RichTextBox;
 
 namespace WLMClient.UI.Data
 {

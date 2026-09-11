@@ -1,0 +1,97 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WLMClient"
+             xmlns:compat="clr-namespace:WLMClient.Compat"
+             x:Class="WLMClient.App"
+             RequestedThemeVariant="Light">
+
+    <Application.Styles>
+        <!-- The Simple theme is the closest match to the classic Windows control look the
+             original WPF client rendered with. -->
+        <SimpleTheme />
+
+        <!-- Single line text fields must not show the scroll bar the Simple theme would
+             otherwise leave visible inside them. -->
+        <Style Selector="TextBox">
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        </Style>
+
+        <!-- Chat window top bar buttons: flat, dimming on hover and when disabled. -->
+        <Style Selector="Button.chatWindowTopBar">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="border"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.chatWindowTopBar:pointerover">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <Style Selector="Button.chatWindowTopBar:disabled">
+            <Setter Property="Opacity" Value="0.4" />
+        </Style>
+
+        <!-- Fully transparent button used as the "add a friend" hit target. -->
+        <Style Selector="Button.transparent">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!-- Contact list rows are plain content: no expander, no indent, no selection chrome. -->
+        <Style Selector="TreeViewItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Background="{TemplateBinding Background}">
+                        <ContentPresenter Name="PART_HeaderPresenter"
+                                          Content="{TemplateBinding Header}"
+                                          ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          Margin="0"
+                                          Padding="0" />
+                        <ItemsPresenter Name="PART_ItemsPresenter"
+                                        IsVisible="{TemplateBinding IsExpanded}"
+                                        ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="TreeView">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+
+        <!-- Scroll bars inside the contact list and chat transcript sit on the page background. -->
+        <Style Selector="TreeView ScrollBar, compat|RichTextBox ScrollBar">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </Application.Styles>
+</Application>

@@ -3,7 +3,7 @@
 <head>
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="shortcut icon" href="img/favicon.ico" />
-<title>Windows Live Messenger</title>
+<title>Linkora</title>
 </head>
 
 <body>
@@ -120,7 +120,7 @@ if (isset($_POST['submit']))
 </div>
 
 <div id="DownloadLinkDiv">
-<a href="#">DOWNLOAD MESSENGER</a>
+<a href="#">DOWNLOAD LINKORA</a>
 </div>
 </div>
 </body>

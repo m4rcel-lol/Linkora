@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -79,7 +79,7 @@ namespace WLMClient.Locale
             {
                 foundChatWindow.Nudge();
 
-                if (!foundChatWindow.IsFocused & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
+                if (!foundChatWindow.IsActive & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
                 {
                     Player.PlaySound(Identifiers.NUDGE);
 
@@ -87,6 +87,30 @@ namespace WLMClient.Locale
                     {
                         string truncatedMessage = "Sent you a nudge!";
                         Notification.NotificationManager.Showpopup(foundChatWindow.GetContactName(), truncatedMessage, foundChatWindow);
+                    }
+                }
+
+                FlashWindowManager.FlashWindow(foundChatWindow, 5);
+            }
+        }
+
+        public static void ReceiveFile(FileTransfer fileTransfer)
+        {
+            bool isChatWindowOpen = IsChatWindowOpen(fileTransfer.id);
+            ChatWindow foundChatWindow = GetChatWindow(fileTransfer.id);
+
+            if (foundChatWindow != null)
+            {
+                foundChatWindow.AddReceivedFile(fileTransfer);
+
+                if (!foundChatWindow.IsActive & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
+                {
+                    Player.PlaySound(Identifiers.NEW_MSG);
+
+                    if (!isChatWindowOpen)
+                    {
+                        Notification.NotificationManager.Showpopup(foundChatWindow.GetContactName(),
+                            "sent you a file.", foundChatWindow);
                     }
                 }
 
@@ -126,7 +150,7 @@ namespace WLMClient.Locale
             {
                 foundChatWindow.AddChatMessage(foundChatWindow.GetContactName(), chatMessage.message);
 
-                if (!foundChatWindow.IsFocused & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
+                if (!foundChatWindow.IsActive & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
                 {
                     Player.PlaySound(Identifiers.NEW_MSG);
 

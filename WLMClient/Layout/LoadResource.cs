@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
-using System.Net;
 using System.IO;
 
 using WLMData.Enums;
@@ -18,6 +19,16 @@ namespace WLMClient.Layout
 {
     class LoadResource
     {
+        private static readonly HttpClient httpClient = CreateHttpClient();
+
+        private static HttpClient CreateHttpClient()
+        {
+            HttpClient client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(15);
+
+            return client;
+        }
+
         public static CroppedBitmap GetSmallIconFromStatus(UserStatus status)
         {
             int smallIconsWidth = 0;
@@ -42,7 +53,8 @@ namespace WLMClient.Layout
                 smallIconsWidth = Resource.Images.Attributes.USER_LIST_STATUS_AVAILABLE;
             }
 
-            return new CroppedBitmap(Images.BITMAP_WINDOW_SMALL_ICONS, new Int32Rect(smallIconsWidth, 0, Resource.Images.Attributes.USER_LIST_STATUS_WIDTH, Resource.Images.Attributes.USER_LIST_STATUS_HEIGHT));
+            return new CroppedBitmap(Images.BITMAP_WINDOW_SMALL_ICONS, new PixelRect(smallIconsWidth, 0,
+                Resource.Images.Attributes.USER_LIST_STATUS_WIDTH, Resource.Images.Attributes.USER_LIST_STATUS_HEIGHT));
         }
 
         public static CroppedBitmap GetAvatarFrameFromStatus(UserStatus status, AvatarSize size)
@@ -91,12 +103,14 @@ namespace WLMClient.Layout
 
             if (size == AvatarSize.Big)
             {
-                return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new Int32Rect(avatarFrameWidth, 0, Resource.Images.Attributes.AVATAR_FRAME_WIDTH, Resource.Images.Attributes.AVATAR_FRAME_HEIGHT));
+                return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new PixelRect(avatarFrameWidth, 0,
+                    Resource.Images.Attributes.AVATAR_FRAME_WIDTH, Resource.Images.Attributes.AVATAR_FRAME_HEIGHT));
             }
 
             if (size == AvatarSize.Small)
             {
-                return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new Int32Rect(avatarFrameWidth, 0, Resource.Images.Attributes.AVATAR_FRAME_SMALL_WIDTH, Resource.Images.Attributes.AVATAR_FRAME_SMALL_HEIGHT));
+                return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new PixelRect(avatarFrameWidth, 0,
+                    Resource.Images.Attributes.AVATAR_FRAME_SMALL_WIDTH, Resource.Images.Attributes.AVATAR_FRAME_SMALL_HEIGHT));
             }
 
             return null;
@@ -104,55 +118,69 @@ namespace WLMClient.Layout
 
         public static CroppedBitmap GetDefaultAvatarImage()
         {
-            return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new Int32Rect(Resource.Images.Attributes.AVATAR_DEFAULT_IMAGE, 0, Resource.Images.Attributes.AVATAR_CHAT_SIZE_WIDTH, Resource.Images.Attributes.AVATAR_CHAT_SIZE_HEIGHT));
+            return new CroppedBitmap(Images.BITMAP_AVATAR_FRAME, new PixelRect(
+                Resource.Images.Attributes.AVATAR_DEFAULT_IMAGE, 0,
+                Resource.Images.Attributes.AVATAR_CHAT_SIZE_WIDTH, Resource.Images.Attributes.AVATAR_CHAT_SIZE_HEIGHT));
         }
 
-        public static BitmapFrame Resize(BitmapSource image, int width, int height, BitmapScalingMode scalingMode)
+        /// <summary>
+        /// Redraws an image at a new pixel size. Used for the small avatar on the main window, which
+        /// the original scaled down with high quality filtering.
+        /// </summary>
+        public static IImage Resize(IImage image, int width, int height, BitmapInterpolationMode scalingMode)
         {
-            DrawingGroup drawingGroup = new DrawingGroup();
-            RenderOptions.SetBitmapScalingMode(drawingGroup, scalingMode);
-            drawingGroup.Children.Add(new ImageDrawing(image, new Rect(0, 0, width, height)));
+            if (image == null)
+            {
+                return null;
+            }
 
-            DrawingVisual targetVisual = new DrawingVisual();
+            try
+            {
+                RenderTargetBitmap target = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
 
-            DrawingContext targetContext = targetVisual.RenderOpen();
-            targetContext.DrawDrawing(drawingGroup);
+                using (DrawingContext context = target.CreateDrawingContext())
+                {
+                    context.PushRenderOptions(new RenderOptions { BitmapInterpolationMode = scalingMode });
 
-            RenderTargetBitmap target = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Default);
-            targetContext.Close();
-            target.Render(targetVisual);
+                    image.Draw(context,
+                        new Rect(0, 0, image.Size.Width, image.Size.Height),
+                        new Rect(0, 0, width, height));
+                }
 
-            BitmapFrame targetFrame = BitmapFrame.Create(target);
-
-            return targetFrame;
+                return target;
+            }
+            catch
+            {
+                return image;
+            }
         }
 
         public static CroppedBitmap GetEmoticon(string emoticon)
         {
             return new CroppedBitmap(Images.BITMAP_EMOTICONS,
-                new Int32Rect(Resource.Images.Emoticons.INDEX_IN_IMAGE[emoticon] * Resource.Images.Attributes.EMOTICON_WIDTH - Resource.Images.Attributes.EMOTICON_WIDTH,
+                new PixelRect(Resource.Images.Emoticons.INDEX_IN_IMAGE[emoticon] * Resource.Images.Attributes.EMOTICON_WIDTH - Resource.Images.Attributes.EMOTICON_WIDTH,
                     0, Resource.Images.Attributes.EMOTICON_WIDTH, Resource.Images.Attributes.EMOTICON_HEIGHT));
         }
 
-        public static BitmapImage GetAvatar(string avatar)
+        /// <summary>Downloads a user's avatar. Returns null if it cannot be fetched or decoded.</summary>
+        public static Bitmap GetAvatar(string avatar)
         {
             try
             {
-                WebClient wc = new WebClient();
-                var bytes = wc.DownloadData(avatar.Trim());
+                if (string.IsNullOrWhiteSpace(avatar))
+                {
+                    return null;
+                }
 
-                MemoryStream ms = new MemoryStream(bytes);
+                byte[] bytes = httpClient.GetByteArrayAsync(avatar.Trim()).GetAwaiter().GetResult();
 
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.StreamSource = ms;
-                bitmap.EndInit();
-
-                return bitmap;
+                using (MemoryStream stream = new MemoryStream(bytes))
+                {
+                    return new Bitmap(stream);
+                }
             }
             catch
             {
-
             }
 
             return null;
@@ -163,23 +191,23 @@ namespace WLMClient.Layout
             if (state == ButtonState.None)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(0, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(0, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             if (state == ButtonState.Hover)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             if (state == ButtonState.Pressed)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH * 2, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH * 2, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                new Int32Rect(0, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                new PixelRect(0, 0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
         }
 
         public static CroppedBitmap chatWindowButtonNudge(ButtonState state)
@@ -187,36 +215,36 @@ namespace WLMClient.Layout
             if (state == ButtonState.None)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             if (state == ButtonState.Hover)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             if (state == ButtonState.Pressed)
             {
                 return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                    new Int32Rect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH * 2, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                    new PixelRect(Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH * 2, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
             }
 
             return new CroppedBitmap(Images.BITMAP_CHAT_WINDOW_BUTTONS,
-                new Int32Rect(0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
+                new PixelRect(0, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_WIDTH, Resource.Images.Attributes.CHAT_WINDOW_BUTTONS_HEIGHT));
         }
 
-        public static System.Windows.Controls.Image getParagraphRectangle()
+        /// <summary>The small square bullet drawn in front of each chat line.</summary>
+        public static Image getParagraphRectangle()
         {
-            System.Windows.Controls.Image image = new System.Windows.Controls.Image();
+            Image image = new Image();
 
             image.Source = Images.BITMAP_CHAT_PARAGRAPH_RECTANGLE;
-            image.SnapsToDevicePixels = true;
             image.Width = 3;
             image.Height = 3;
             image.Stretch = Stretch.Fill;
 
-            RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.NearestNeighbor);
+            RenderOptions.SetBitmapInterpolationMode(image, BitmapInterpolationMode.None);
             RenderOptions.SetEdgeMode(image, EdgeMode.Aliased);
 
             return image;

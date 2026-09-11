@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +26,8 @@ namespace WLMServer.Network
         public string version = "1.0.0";
         private Dictionary<Connection, ConnectedUser> users;
         private PacketHandler authentication, addNewContact, addNewContactResponse, personalUserUpdate,
-            deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus;
+            deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus, transferFile;
+        private AvatarHttpServer avatarHttpServer;
         public AccountManager accountManager;
 
         public Server()
@@ -41,6 +42,7 @@ namespace WLMServer.Network
             transferMessage = new PacketHandling.TransferMessage(this);
             transferNudge = new PacketHandling.TransferNudge(this);
             transferWritingStatus = new PacketHandling.TransferWritingStatus(this);
+            transferFile = new PacketHandling.TransferFile(this);
 
             accountManager = new AccountManager();
 
@@ -61,7 +63,39 @@ namespace WLMServer.Network
                 Program.WriteToConsole("Local End Point: " + listenEndPoint.Address + ":" + listenEndPoint.Port);
             }
 
+            StartAvatarHttpServer();
+
             BroadCastContacts(Config.Properties.BROADCAST_INTERVAL);
+        }
+
+        /// <summary>
+        /// Starts the optional built-in avatar webserver, so profile pictures work without a
+        /// separate PHP install. Disabled when avatars_http_port is 0.
+        /// </summary>
+        private void StartAvatarHttpServer()
+        {
+            if (!Config.Properties.AVATAR_ENABLE || Config.Properties.AVATAR_HTTP_PORT <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                string storagePath = Config.Properties.AVATAR_STORAGE_PATH;
+
+                if (!System.IO.Path.IsPathRooted(storagePath))
+                {
+                    storagePath = System.IO.Path.Combine(AppContext.BaseDirectory, storagePath);
+                }
+
+                avatarHttpServer = new AvatarHttpServer(Config.Properties.AVATAR_HTTP_PORT, storagePath);
+                avatarHttpServer.Start();
+            }
+            catch (Exception exception)
+            {
+                Program.WriteToConsole("Could not start the avatar webserver: " + exception.Message);
+                Program.WriteToConsole("Avatars will not work until this is resolved.");
+            }
         }
 
         public void BroadCastContacts(int intervalSeconds)
