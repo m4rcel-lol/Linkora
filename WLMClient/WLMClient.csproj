@@ -24,6 +24,12 @@
     <None Include="Messenger.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+
+    <!-- Translations ship as loose files so anyone can add or edit a language without a rebuild. -->
+    <None Include="Languages\**\*.lang">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Languages\%(Filename)%(Extension)</Link>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

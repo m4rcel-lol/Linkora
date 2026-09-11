@@ -15,6 +15,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 
 using WLMClient.Compat;
+using WLMClient.Config;
 using WLMClient.Locale;
 using WLMClient.Network;
 
@@ -31,8 +32,9 @@ namespace WLMClient.UI.Controls.Dialogs
         private Button btnBrowse;
         private Button btnSave;
         private Button btnCancel;
+        private ComboBox cmbLanguage;
 
-        public FrmOptions() : base(410, 264, "Options")
+        public FrmOptions() : base(410, 310, Language.Get("options.title"))
         {
             InitializeComponent();
 
@@ -41,14 +43,18 @@ namespace WLMClient.UI.Controls.Dialogs
 
         private void InitializeComponent()
         {
-            AddGroupBox("Options", 15, 16, 380, 229);
+            AddGroupBox(Language.Get("options.title"), 15, 16, 380, 275);
 
-            TextBlock label2 = CreateLabel("New Avatar", "Segoe UI, Helvetica, Arial", 14.25,
+            // Headings sit above their fields and are capped to the field width, so a longer
+            // translation shortens with an ellipsis instead of running off the dialog.
+            TextBlock label2 = CreateLabel(Language.Get("options.newavatar"), "Segoe UI, Helvetica, Arial", 14.25,
                 new SolidColorBrush(Color.FromRgb(0x1E, 0x90, 0xFF)));
+            CapWidth(label2, 112);
             Add(label2, 31, 48);
 
-            TextBlock label3 = CreateLabel("Display name", "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
-            Add(label3, 247, 48);
+            TextBlock label3 = CreateLabel(Language.Get("options.displayname"), "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+            CapWidth(label3, 223);
+            Add(label3, 149, 48);
 
             Border avatarBorder = new Border
             {
@@ -79,25 +85,78 @@ namespace WLMClient.UI.Controls.Dialogs
 
             Add(txtName, 149, 84);
 
-            btnBrowse = CreateButton("Browse", 98, 30, Brushes.Black, Brushes.White);
+            btnBrowse = CreateButton(Language.Get("dialog.browse"), 98, 30, Brushes.Black, Brushes.White);
             btnBrowse.FontSize = 12 * PointToPixel;
             btnBrowse.Click += btnBrowse_Click;
             Add(btnBrowse, 36, 196);
 
-            btnSave = CreateButton("Save", 94, 51, Brushes.WhiteSmoke, Brushes.Black);
+            btnSave = CreateButton(Language.Get("dialog.save"), 94, 51, Brushes.WhiteSmoke, Brushes.Black);
             btnSave.Click += btnSave_Click;
             Add(btnSave, 278, 175);
 
-            btnCancel = CreateButton("Close", 94, 51, Brushes.WhiteSmoke, Brushes.Black);
+            btnCancel = CreateButton(Language.Get("dialog.close"), 94, 51, Brushes.WhiteSmoke, Brushes.Black);
             btnCancel.Click += btnCancel_Click;
             Add(btnCancel, 149, 175);
+
+            AddLanguagePicker();
+        }
+
+        /// <summary>
+        /// The language list. Entries come from the Languages folder, so a language added there
+        /// shows up here without rebuilding.
+        /// </summary>
+        private void AddLanguagePicker()
+        {
+            TextBlock label = CreateLabel(Language.Get("options.language"), "Segoe UI, Helvetica, Arial", 14.25,
+                Brushes.Black);
+            CapWidth(label, 112);
+            Add(label, 31, 238);
+
+            List<LanguageInfo> languages = Language.GetAvailable();
+
+            cmbLanguage = new ComboBox
+            {
+                Width = 223,
+                Height = 26,
+                ItemsSource = languages,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                FontFamily = new FontFamily("Segoe UI, Helvetica, Arial"),
+                FontSize = 12 * PointToPixel
+            };
+
+            cmbLanguage.SelectedIndex = Math.Max(0, languages.FindIndex(
+                x => string.Equals(x.Code, Language.CurrentCode, StringComparison.OrdinalIgnoreCase)));
+
+            cmbLanguage.SelectionChanged += LanguageChanged;
+
+            Add(cmbLanguage, 149, 238);
+        }
+
+        private void LanguageChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LanguageInfo selected = cmbLanguage.SelectedItem as LanguageInfo;
+
+            if (selected == null || string.Equals(selected.Code, Language.CurrentCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            SaveData configuration = SaveDataManager.GetConfiguration();
+            configuration.language = selected.Code;
+
+            SaveDataManager.SaveConfiguration(configuration);
+
+            // Applies to every open window immediately; this dialog keeps its current wording
+            // until it is reopened.
+            Language.Load(selected.Code);
         }
 
         private async void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
             if (Config.Properties.AVATAR_IMAGE_UPLOAD_URL == "")
             {
-                MessageBox.Show("Changing avatar has been disabled.", "Unable to change avatar.",
+                MessageBox.Show(Language.Get("options.avatar.disabled.text"), Language.Get("options.avatar.disabled.title"),
                     MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return;
@@ -105,7 +164,7 @@ namespace WLMClient.UI.Controls.Dialogs
 
             IReadOnlyList<IStorageFile> files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Select an avatar",
+                Title = Language.Get("options.newavatar"),
                 AllowMultiple = false,
                 FileTypeFilter = new[]
                 {
@@ -144,7 +203,7 @@ namespace WLMClient.UI.Controls.Dialogs
 
                 if (uploadValue == "0")
                 {
-                    MessageBox.Show("Failed to upload imagine.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(Language.Get("options.avatar.failed"), Language.Get("options.error"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {
@@ -155,8 +214,8 @@ namespace WLMClient.UI.Controls.Dialogs
             }
             catch (Exception err)
             {
-                MessageBox.Show("Unable to upload image. " + err.ToString(), "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Language.Format("options.avatar.error", err.ToString()),
+                    Language.Get("options.error"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {

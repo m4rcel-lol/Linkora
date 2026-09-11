@@ -20,17 +20,11 @@ namespace WLMClient.UI.Controls.Dialogs
     /// <summary>The "Add a Contact" dialog, laid out as the Windows Forms designer had it.</summary>
     public class FrmAddNewFriend : DialogWindow
     {
-        private const string PromptText =
-            "Enter a Linkora ID. When you add someone to your contact list they will\n" +
-            "receive a request asking them to accept or decline.\n" +
-            "\n" +
-            "If they accept, the contact will appear in your contact list.";
-
         private TextBox txtName;
         private Button btnSubmit;
         private TextBlock lblText;
 
-        public FrmAddNewFriend() : base(609, 221, "Add a Contact")
+        public FrmAddNewFriend() : base(609, 221, Language.Get("addfriend.title"))
         {
             InitializeComponent();
 
@@ -39,9 +33,9 @@ namespace WLMClient.UI.Controls.Dialogs
 
         private void InitializeComponent()
         {
-            AddGroupBox("Add a Contact", 15, 14, 579, 192);
+            AddGroupBox(Language.Get("addfriend.title"), 15, 14, 579, 192);
 
-            lblText = CreateLabel(PromptText, "Times New Roman, Times, serif", 12, Brushes.Black);
+            lblText = CreateLabel(Language.Get("addfriend.prompt"), "Times New Roman, Times, serif", 12, Brushes.Black);
             Add(lblText, 32, 53);
 
             txtName = new TextBox
@@ -59,7 +53,7 @@ namespace WLMClient.UI.Controls.Dialogs
             txtName.KeyUp += txtName_KeyUp;
             Add(txtName, 36, 162);
 
-            btnSubmit = CreateButton("OK", 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnSubmit = CreateButton(Language.Get("dialog.ok"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
             btnSubmit.Click += btnSubmit_Click;
             btnSubmit.IsDefault = true;
             Add(btnSubmit, 469, 160);

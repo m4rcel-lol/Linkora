@@ -20,6 +20,9 @@ namespace WLMClient.Config
         /// </summary>
         public string saveServer { get; set; }
 
+        /// <summary>Interface language code, empty to follow the operating system.</summary>
+        public string language { get; set; }
+
         public SaveData(bool rememberId, bool rememberPassword, bool autoLogin,
             string saveId, string savePass)
             : this(rememberId, rememberPassword, autoLogin, saveId, savePass, "")
@@ -35,6 +38,7 @@ namespace WLMClient.Config
             this.saveId = saveId;
             this.savePass = savePass;
             this.saveServer = saveServer;
+            this.language = "";
         }
     }
 }

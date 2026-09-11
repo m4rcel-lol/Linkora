@@ -98,6 +98,39 @@ namespace WLMClient.UI.Controls.Dialogs
             };
         }
 
+        /// <summary>
+        /// Fits a label into a fixed slot. English keeps its designed size; a longer translation
+        /// is stepped down a little until it fits, and only then shortened with an ellipsis.
+        /// </summary>
+        protected static void CapWidth(TextBlock label, double maxWidth)
+        {
+            const double MinimumFontSize = 11;
+
+            while (label.FontSize > MinimumFontSize &&
+                   MeasureWidth(label.Text, label.FontFamily, label.FontSize) > maxWidth)
+            {
+                label.FontSize -= 0.5;
+            }
+
+            label.MaxWidth = maxWidth;
+            label.TextTrimming = TextTrimming.CharacterEllipsis;
+
+            ToolTip.SetTip(label, label.Text);
+        }
+
+        private static double MeasureWidth(string text, FontFamily fontFamily, double fontSize)
+        {
+            FormattedText measured = new FormattedText(
+                text ?? "",
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(fontFamily),
+                fontSize,
+                Brushes.Black);
+
+            return measured.Width;
+        }
+
         protected static Button CreateButton(string text, double width, double height, IBrush background, IBrush foreground)
         {
             return new Button

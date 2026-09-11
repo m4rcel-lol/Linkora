@@ -12,6 +12,7 @@ using Avalonia.Media.Imaging;
 
 using WLMData.Data.Packets;
 using WLMClient.Layout;
+using WLMClient.Locale;
 using WLMClient.Network;
 
 namespace WLMClient.UI.Controls.Dialogs
@@ -27,7 +28,7 @@ namespace WLMClient.UI.Controls.Dialogs
         private Button btnYes;
         private Button btnNo;
 
-        public FrmFriendRequest(UserInfo userInfo) : base(599, 199, "New Friend Request")
+        public FrmFriendRequest(UserInfo userInfo) : base(599, 199, Language.Get("friendrequest.title"))
         {
             Topmost = true;
 
@@ -36,9 +37,7 @@ namespace WLMClient.UI.Controls.Dialogs
             Closing += frmFriendRequest_FormClosing;
 
             userID = userInfo.id;
-            lblText.Text =
-                "'" + userInfo.name + "' (" + userInfo.id + ") has added you to his/her contact list." + "\n\n"
-                + "Do you want to add this person to your own contact list?";
+            lblText.Text = Language.Format("friendrequest.text", userInfo.name, userInfo.id);
 
             CroppedBitmap defaultImg = LoadResource.GetDefaultAvatarImage();
 
@@ -63,7 +62,7 @@ namespace WLMClient.UI.Controls.Dialogs
 
         private void InitializeComponent()
         {
-            AddGroupBox("New Friend Request", 10, 11, 579, 176);
+            AddGroupBox(Language.Get("friendrequest.title"), 10, 11, 579, 176);
 
             Border avatarBorder = new Border
             {
@@ -81,11 +80,11 @@ namespace WLMClient.UI.Controls.Dialogs
             lblText = CreateLabel("label1", "Times New Roman, Times, serif", 12, Brushes.Black);
             Add(lblText, 129, 39);
 
-            btnYes = CreateButton("Yes", 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnYes = CreateButton(Language.Get("dialog.yes"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
             btnYes.Click += btnYes_Click;
             Add(btnYes, 357, 150);
 
-            btnNo = CreateButton("No", 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnNo = CreateButton(Language.Get("dialog.no"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
             btnNo.Click += btnNo_Click;
             Add(btnNo, 473, 150);
         }

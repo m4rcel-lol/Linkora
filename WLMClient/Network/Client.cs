@@ -76,9 +76,8 @@ namespace WLMClient.Network
                 connectionInfo = null;
 
                 MessageBox.Show(
-                    "'" + Config.Properties.SERVER_ADDRESS + "' could not be found.\n\n" +
-                    "Check the server address on the sign in page.",
-                    "Unable to reach that server", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Locale.Language.Format("error.server.text", Config.Properties.SERVER_ADDRESS),
+                    Locale.Language.Get("error.server.title"), MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return false;
             }

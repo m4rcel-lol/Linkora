@@ -45,6 +45,9 @@ namespace WLMClient.UI.Windows
             Config.Properties.SERVER_PORT = Convert.ToInt32(ConfigurationManager.AppSettings["server_port"] ?? "1323");
             Config.Properties.REGISTRATION_URL = (ConfigurationManager.AppSettings["registration_url"] ?? "").Trim();
 
+            // The saved language has to be in place before any window builds its text.
+            Locale.Language.Load(Config.SaveDataManager.GetConfiguration().language);
+
             InitializeComponent();
 
             SizeChanged += Window_SizeChanged;
@@ -136,6 +139,9 @@ namespace WLMClient.UI.Windows
 
         public void LoginSuccess()
         {
+            // Favourites are kept per account, so they load once we know who signed in.
+            Config.Favourites.LoadFor(Locale.Personal.USER_INFO == null ? "" : Locale.Personal.USER_INFO.id);
+
             ClearLogin();
 
             pageMain = new Main();
@@ -158,6 +164,7 @@ namespace WLMClient.UI.Windows
             if (pageLogin == null)
             {
                 Locale.ManageChatWindows.CloseAllOpenChatWindows();
+                Locale.Conversations.Clear();
 
                 pageMain = null;
                 controlPanel.Children.Clear();
@@ -173,7 +180,7 @@ namespace WLMClient.UI.Windows
             }
             else
             {
-                MessageBox.Show("Linkora was not able to contact the server. Please check your internet connection.", "Unable to connect to server.", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Locale.Language.Get("error.connection.text"), Locale.Language.Get("error.connection.title"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

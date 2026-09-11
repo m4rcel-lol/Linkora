@@ -6,9 +6,11 @@ A Windows Live Messenger style instant messenger, running on **macOS**, **Linux*
 
 ## Features
 + Add / Remove / Block Contact
++ Favourite contacts
 + Send Nudge
 + File attachments in chat
-+ Avatars / profile pictures
++ Avatars / profile pictures shown in the contact list
++ Interface in your own language
 + Quick Message
 + Emoticons
 + Web Registration
@@ -259,6 +261,51 @@ leave `avatars_http_port` at `0`. See the next section.
 
 > Uploaded pictures are served over plain HTTP and are readable by anyone who can reach the port.
 > Put it behind a reverse proxy with TLS if that matters to you.
+
+---
+
+# The contact list
+
+Each contact shows their profile picture framed in their status colour: green for available, red
+for busy, orange for away, grey for offline. Underneath their name is either their personal
+message, or, when they have not set one, the most recent message exchanged with them. That
+preview covers the current session only, since the application keeps no message history.
+
+Right click a contact and choose **Add to Favourites** to pin them. Favourites are listed in
+their own group above everyone else, and both groups can be collapsed by clicking the heading.
+The list is kept per account in `Favourites.xml`, next to the saved sign in details, so two
+people sharing an installation keep separate lists.
+
+---
+
+# Languages
+
+The interface language is chosen in **Options → Language**. It applies immediately and is
+remembered. Out of the box Linkora speaks English, Spanish, German, French and Polish, and on
+first run it follows the language the operating system is set to.
+
+### Adding your own language
+
+Translations are plain text files in the `Languages` folder next to the client, so adding one
+needs no rebuild:
+
+1. Copy an existing file, for example `Languages/es.lang`, to your language's code:
+   `Languages/pt-BR.lang`. The file name is what the application matches against the system
+   language.
+2. Translate the values after each `=`. Set `language.name` to the language's own name, which is
+   what the Options list shows.
+3. Restart the client. The new language appears in the list.
+
+```
+language.name = Português
+login.button = Entrar
+main.friends = Amigos ({0}/{1})
+```
+
+Placeholders such as `{0}` are filled in by the application and must be kept. `
+` starts a new
+line. Lines beginning with `#` are comments. Any key you leave out falls back to English, so a
+partial translation is perfectly usable.
 
 ---
 

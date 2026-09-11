@@ -13,6 +13,7 @@ using Avalonia.Media.Imaging;
 
 using WLMClient.Compat;
 using WLMClient.Config;
+using WLMClient.Locale;
 using WLMData.Enums;
 using WLMClient.UI.Data.Enums;
 
@@ -42,6 +43,10 @@ namespace WLMClient.UI.Controls
             btnLogin.Click += btnLogin_Click;
             txtPass.KeyUp += txtPass_PreviewKeyUp;
             txtSignUp.PointerPressed += txtSignUp_PointerPressed;
+
+            ApplyLanguage();
+            Language.Changed += ApplyLanguage;
+            DetachedFromVisualTree += (sender, e) => Language.Changed -= ApplyLanguage;
 
             imagePartnerAvatar.Source = Layout.LoadResource.GetDefaultAvatarImage();
             imagePartnerFrame.Source = Layout.LoadResource.GetAvatarFrameFromStatus(UserStatus.Offline, AvatarSize.Big);
@@ -83,6 +88,21 @@ namespace WLMClient.UI.Controls
             }
         }
 
+
+        /// <summary>Applies the current language to the sign in page.</summary>
+        private void ApplyLanguage()
+        {
+            txtSignInTitle.Text = Language.Get("login.title");
+            txtSignInPrompt.Text = Language.Get("login.prompt");
+            txtSignUp.Text = Language.Get("login.signup");
+            txtServer.Watermark = Language.Get("login.server.watermark");
+            checkRememberMe.Content = Language.Get("login.rememberme");
+            checkRememberMyPassword.Content = Language.Get("login.rememberpassword");
+            checkSignInAutomatically.Content = Language.Get("login.autosignin");
+            btnLogin.Content = Language.Get("login.button");
+
+            ToolTip.SetTip(txtServer, Language.Get("login.server.tooltip"));
+        }
 
         private void checkAvailable_PreviewMouseLeftButtonDown(object sender, PointerPressedEventArgs e)
         {
@@ -132,10 +152,8 @@ namespace WLMClient.UI.Controls
 
             if (!Config.Properties.TryParseServer(txtServer.Text, out host, out port))
             {
-                MessageBox.Show(
-                    "Enter the address of the Linkora server you want to sign in to.\n\n" +
-                    "For example 127.0.0.1, chat.example.com, or chat.example.com:1323.",
-                    "Server address needed", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(Language.Get("login.server.needed.text"),
+                    Language.Get("login.server.needed.title"), MessageBoxButton.OK, MessageBoxImage.Information);
 
                 txtServer.Focus();
 
@@ -180,9 +198,8 @@ namespace WLMClient.UI.Controls
 
             if (string.IsNullOrWhiteSpace(url))
             {
-                MessageBox.Show(
-                    "Enter the address of the server you want to sign up on first.",
-                    "Server address needed", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(Language.Get("login.signup.needed.text"),
+                    Language.Get("error.signup.title"), MessageBoxButton.OK, MessageBoxImage.Information);
 
                 txtServer.Focus();
 

@@ -45,7 +45,7 @@ namespace WLMClient.Network.PacketHandling
                 {
                     mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                     {
-                        MessageBox.Show("We can't sign you into Linkora", "Wrong username / password", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(Language.Get("error.signin.text"), Language.Get("error.signin.title"), MessageBoxButton.OK, MessageBoxImage.Error);
                     }));
                 }
 
@@ -53,7 +53,7 @@ namespace WLMClient.Network.PacketHandling
                 {
                     mainWindow.Dispatcher.Invoke(DispatcherPriority.Normal, (Action)(() =>
                     {
-                        MessageBox.Show("This version of Linkora is outdated.", "Outdated software", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(Language.Get("error.outdated.text"), Language.Get("error.outdated.title"), MessageBoxButton.OK, MessageBoxImage.Error);
                     }));
                 }
             }

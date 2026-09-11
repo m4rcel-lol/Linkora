@@ -85,7 +85,7 @@ namespace WLMClient.Locale
 
                     if (!isChatWindowOpen)
                     {
-                        string truncatedMessage = "Sent you a nudge!";
+                        string truncatedMessage = Language.Get("notification.sentnudge");
                         Notification.NotificationManager.Showpopup(foundChatWindow.GetContactName(), truncatedMessage, foundChatWindow);
                     }
                 }
@@ -101,6 +101,9 @@ namespace WLMClient.Locale
 
             if (foundChatWindow != null)
             {
+                Conversations.Record(fileTransfer.id, foundChatWindow.GetContactName(),
+                    Language.Get("notification.sentfile"));
+
                 foundChatWindow.AddReceivedFile(fileTransfer);
 
                 if (!foundChatWindow.IsActive & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available))
@@ -110,7 +113,7 @@ namespace WLMClient.Locale
                     if (!isChatWindowOpen)
                     {
                         Notification.NotificationManager.Showpopup(foundChatWindow.GetContactName(),
-                            "sent you a file.", foundChatWindow);
+                            Language.Get("notification.sentfile"), foundChatWindow);
                     }
                 }
 
@@ -145,6 +148,10 @@ namespace WLMClient.Locale
         {
             bool isChatWindowOpen = IsChatWindowOpen(chatMessage.id);
             ChatWindow foundChatWindow = GetChatWindow(chatMessage.id);
+
+            Conversations.Record(chatMessage.id,
+                foundChatWindow != null ? foundChatWindow.GetContactName() : chatMessage.id,
+                chatMessage.message);
 
             if (foundChatWindow != null)
             {

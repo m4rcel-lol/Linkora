@@ -26,7 +26,6 @@ using WLMClient.Layout;
 using WLMClient.UI.Controls.Dialogs;
 using WLMClient.Network;
 
-using RichTextBox = WLMClient.Compat.RichTextBox;
 using BrushConverter = WLMClient.Compat.BrushConverter;
 
 namespace WLMClient.UI.Controls
@@ -36,20 +35,21 @@ namespace WLMClient.UI.Controls
     /// </summary>
     public partial class Main : UserControl
     {
-        private List<ContactListEntryData> listContacts;
+        private readonly List<ContactRow> listContacts = new List<ContactRow>();
+
+        private ContactGroupHeader favouritesHeader;
+        private ContactGroupHeader contactsHeader;
+
         private bool isEnterKeyDownInComment;
         private bool isCommentEditSubmitted;
         private bool isCommentBeingEdited;
 
         public Main()
         {
-            listContacts = new List<ContactListEntryData>();
-
             InitializeComponent();
 
+            CreateGroupHeaders();
             WireEvents();
-
-            UpdatePersonalInformation();
 
             menuItemIconArrowAvailable.Source = LoadResource.GetSmallIconFromStatus(UserStatus.Available);
             menuItemIconArrowBusy.Source = LoadResource.GetSmallIconFromStatus(UserStatus.Busy);
@@ -59,8 +59,9 @@ namespace WLMClient.UI.Controls
             isEnterKeyDownInComment = false;
             isCommentEditSubmitted = false;
             isCommentBeingEdited = false;
-        }
 
+            ApplyLanguage();
+        }
 
         private void WireEvents()
         {
@@ -84,7 +85,48 @@ namespace WLMClient.UI.Controls
             menuItemArrowOffline.Click += menuItemArrowOffline_Click;
             menuItemArrowOptions.Click += menuItemArrowOptions_Click;
             menuItemArrowExit.Click += menuItemArrowExit_Click;
+
+            Conversations.Changed += OnConversationChanged;
+            Config.Favourites.Changed += RebuildContactList;
+            Language.Changed += ApplyLanguage;
+
+            DetachedFromVisualTree += (sender, e) =>
+            {
+                Conversations.Changed -= OnConversationChanged;
+                Config.Favourites.Changed -= RebuildContactList;
+                Language.Changed -= ApplyLanguage;
+            };
         }
+
+        private void CreateGroupHeaders()
+        {
+            favouritesHeader = new ContactGroupHeader();
+            favouritesHeader.Toggled += RebuildContactList;
+
+            contactsHeader = new ContactGroupHeader();
+            contactsHeader.Toggled += RebuildContactList;
+        }
+
+        #region Language
+
+        /// <summary>Applies the current language to everything shown on this page.</summary>
+        private void ApplyLanguage()
+        {
+            menuItemArrowAvailable.Header = Language.Get("menu.available");
+            menuItemArrowBusy.Header = Language.Get("menu.busy");
+            menuItemArrowAway.Header = Language.Get("menu.away");
+            menuItemArrowOffline.Header = Language.Get("menu.appearoffline");
+            menuItemArrowOptions.Header = Language.Get("menu.options");
+            menuItemArrowExit.Header = Language.Get("menu.exit");
+
+            ToolTip.SetTip(btnAddFriend, Language.Get("main.addfriend"));
+            ToolTip.SetTip(txtConnectedTo, Language.Get("main.connectedto.tooltip"));
+
+            UpdatePersonalInformation();
+            RebuildContactList();
+        }
+
+        #endregion
 
         private void btnArrowStatus_PreviewMouseLeftButtonDown(object sender, PointerPressedEventArgs e)
         {
@@ -148,7 +190,7 @@ namespace WLMClient.UI.Controls
             {
                 if (Personal.USER_INFO.comment.Length == 0)
                 {
-                    txtQuickMessage.Text = "Share a quick message";
+                    txtQuickMessage.Text = Language.Get("main.quickmessage");
                 }
                 else
                 {
@@ -173,19 +215,35 @@ namespace WLMClient.UI.Controls
                 background.Source = Images.LoadBitmap(Resource.Images.Identifiers.CHAT_WINDOW_BACKGROUND_SKINNY);
             }
 
-            foreach (ContactListEntryData contact in listContacts)
-            {
-                contact.richTextBox.Width = listContactBorder.Bounds.Width - 2;
-            }
+            ResizeContactRows();
 
             mainControl.Height = height;
+        }
+
+        /// <summary>Keeps the rows and their headings as wide as the list.</summary>
+        private void ResizeContactRows()
+        {
+            double width = listContactBorder.Bounds.Width - 2;
+
+            if (width <= 0)
+            {
+                return;
+            }
+
+            foreach (ContactRow row in listContacts)
+            {
+                row.Width = width;
+            }
+
+            favouritesHeader.Width = width;
+            contactsHeader.Width = width;
         }
 
         public void UpdatePersonalInformation()
         {
             txtName.Text = Personal.USER_INFO.name;
-            txtStatus.Text = "(" + ((UserStatus)Personal.USER_INFO.status).ToString() + ")";
-            txtConnectedTo.Text = "Connected to " + Config.Properties.GetServerDisplay();
+            txtStatus.Text = "(" + Language.GetStatus((UserStatus)Personal.USER_INFO.status) + ")";
+            txtConnectedTo.Text = Language.Format("main.connectedto", Config.Properties.GetServerDisplay());
 
             if (Personal.USER_INFO.comment.Length != 0)
             {
@@ -193,7 +251,7 @@ namespace WLMClient.UI.Controls
             }
             else
             {
-                txtQuickMessage.Text = "Share a quick message";
+                txtQuickMessage.Text = Language.Get("main.quickmessage");
             }
 
             imagePartnerFrame.Source = LoadResource.GetAvatarFrameFromStatus((UserStatus)Personal.USER_INFO.status, AvatarSize.Small);
@@ -253,130 +311,227 @@ namespace WLMClient.UI.Controls
             ManageChatWindows.UpdateChatWindowPersonal();
         }
 
+        #region Contact list
+
         public void AddContactToList(UserInfo contact)
         {
-            RichTextBox txtContact = new RichTextBox();
-            txtContact.DoubleTapped += TxtContact_PreviewMouseDoubleClick;
+            ContactRow row = new ContactRow(contact.id);
 
-            txtContact.IsDocumentEnabled = true;
+            row.ContextMenu = BuildContactMenu(contact);
 
+            row.DoubleTapped += TxtContact_PreviewMouseDoubleClick;
+            row.PointerPressed += txtContact_PreviewMouseDown;
+            row.PointerEntered += txtContact_MouseEnter;
+            row.PointerExited += txtContact_MouseLeave;
+
+            row.Update(contact);
+
+            listContacts.Add(row);
+
+            RebuildContactList();
+        }
+
+        /// <summary>Builds the right click menu for a contact row.</summary>
+        private ContextMenu BuildContactMenu(UserInfo contact)
+        {
             ContextMenu context = new ContextMenu();
-            MenuItem blockItem = new MenuItem(); blockItem.Tag = contact.id;
-            MenuItem deleteItem = new MenuItem(); deleteItem.Tag = contact.id;
-            MenuItem openChatItem = new MenuItem(); openChatItem.Tag = contact.id;
 
-            if (contact.blocked)
-            {
-                blockItem.Header = "Unblock";
-            }
-            else
-            {
-                blockItem.Header = "Block";
-            }
+            MenuItem openChatItem = new MenuItem { Tag = contact.id, Header = Language.Get("contact.sendmessage") };
+            MenuItem favouriteItem = new MenuItem { Tag = contact.id };
+            MenuItem blockItem = new MenuItem { Tag = contact.id };
+            MenuItem deleteItem = new MenuItem { Tag = contact.id, Header = Language.Get("contact.remove") };
 
-            openChatItem.Header = "Send Message";
-            deleteItem.Header = "Remove Contact";
+            favouriteItem.Header = Config.Favourites.IsFavourite(contact.id)
+                ? Language.Get("contact.removefavourite")
+                : Language.Get("contact.addfavourite");
+
+            // Read from the contact rather than the menu's own wording, which changes with language.
+            blockItem.Header = contact.blocked
+                ? Language.Get("contact.unblock")
+                : Language.Get("contact.block");
+
+            openChatItem.Click += OpenChatItem_Click;
+            favouriteItem.Click += FavouriteItem_Click;
+            blockItem.Click += BlockItem_Click;
+            deleteItem.Click += DeleteItem_Click;
 
             context.Items.Add(openChatItem);
+            context.Items.Add(new Separator());
+            context.Items.Add(favouriteItem);
             context.Items.Add(new Separator());
             context.Items.Add(blockItem);
             context.Items.Add(deleteItem);
 
-            blockItem.Click += BlockItem_Click;
-            deleteItem.Click += DeleteItem_Click;
-            openChatItem.Click += OpenChatItem_Click;
+            return context;
+        }
 
-            txtContact.ContextMenu = context;
-
-            txtContact.PointerPressed += txtContact_PreviewMouseDown;
-            txtContact.PointerEntered += txtContact_MouseEnter;
-            txtContact.PointerExited += txtContact_MouseLeave;
-            txtContact.Document.Blocks.Clear();
-            txtContact.Margin = new Thickness(0, 0, 0, 2);
-            txtContact.BorderThickness = new Thickness(0);
-            txtContact.Background = new BrushConverter().ConvertFrom("#FCFCFC");
-            txtContact.VerticalAlignment = VerticalAlignment.Top;
-            txtContact.IsReadOnly = true;
-            txtContact.Height = 30;
-            txtContact.Tag = contact.id;
-            txtContact.ToolTip = contact.id;
-            txtContact.Cursor = new Cursor(StandardCursorType.Arrow);
-
-            Image imgStatus = new Image();
-            imgStatus.Source = LoadResource.GetSmallIconFromStatus((UserStatus)contact.status);
-            imgStatus.Width = 16;
-            imgStatus.Height = 16;
-            imgStatus.Stretch = Stretch.Fill;
-            imgStatus.Margin = new Thickness(0, 4, 0, 0);
-
-            RenderOptions.SetBitmapInterpolationMode(imgStatus, BitmapInterpolationMode.None);
-            RenderOptions.SetEdgeMode(imgStatus, EdgeMode.Aliased);
-            InlineUIContainer container = new InlineUIContainer(imgStatus);
-
-            Paragraph paragraph = new Paragraph(container);
-            paragraph.Padding = new Thickness(0, 0, 0, 0);
-            paragraph.Margin = new Thickness(6, 0, 0, 0);
-            paragraph.TextAlignment = TextAlignment.Left;
-
-            txtContact.Document.Blocks.Add(paragraph);
-
-            TextBlock txtName = new TextBlock();
-
-            if (contact.comment.Length > 0)
+        /// <summary>
+        /// Rebuilds the list: favourites first, then everyone else, each group sorted with the
+        /// contacts who are online at the top.
+        /// </summary>
+        private void RebuildContactList()
+        {
+            if (contactListView == null)
             {
-                txtName.Text = contact.name + " - ";
-            }
-            else
-            {
-                txtName.Text = contact.name;
+                return;
             }
 
-            txtName.Margin = new Thickness(5, 0, 0, 1);
-            txtName.FontFamily = new FontFamily("Segoe UI");
-            txtName.FontSize = 12;
-            txtName.Foreground = new BrushConverter().ConvertFrom("#333333");
-            txtName.FontWeight = FontWeight.Normal;
+            List<ContactRow> favourites = new List<ContactRow>();
+            List<ContactRow> others = new List<ContactRow>();
 
-            paragraph.Inlines.Add(new InlineUIContainer(txtName)
+            foreach (ContactRow row in listContacts)
             {
-                BaselineAlignment = BaselineAlignment.TextBottom
+                if (Config.Favourites.IsFavourite(row.ContactId))
+                {
+                    favourites.Add(row);
+                }
+                else
+                {
+                    others.Add(row);
+                }
+            }
+
+            Sort(favourites);
+            Sort(others);
+
+            contactListView.Items.Clear();
+
+            // The headings only earn their place once the list is actually split into groups.
+            bool showHeaders = favourites.Count > 0;
+
+            if (showHeaders)
+            {
+                favouritesHeader.SetText(Language.Format("main.group.favourites",
+                    CountOnline(favourites), favourites.Count));
+
+                contactListView.Items.Add(favouritesHeader);
+
+                if (favouritesHeader.IsExpanded)
+                {
+                    foreach (ContactRow row in favourites)
+                    {
+                        contactListView.Items.Add(row);
+                    }
+                }
+            }
+
+            if (others.Count > 0)
+            {
+                if (showHeaders)
+                {
+                    contactsHeader.SetText(Language.Format("main.group.contacts",
+                        CountOnline(others), others.Count));
+
+                    contactListView.Items.Add(contactsHeader);
+                }
+
+                if (!showHeaders || contactsHeader.IsExpanded)
+                {
+                    foreach (ContactRow row in others)
+                    {
+                        contactListView.Items.Add(row);
+                    }
+                }
+            }
+
+            ResizeContactRows();
+            UpdateContactCount();
+        }
+
+        /// <summary>Online contacts first, then by name, matching how the original ordered them.</summary>
+        private static void Sort(List<ContactRow> rows)
+        {
+            rows.Sort((left, right) =>
+            {
+                UserInfo leftUser = Find(left.ContactId);
+                UserInfo rightUser = Find(right.ContactId);
+
+                bool leftOnline = leftUser != null && leftUser.status != (int)UserStatus.Offline;
+                bool rightOnline = rightUser != null && rightUser.status != (int)UserStatus.Offline;
+
+                if (leftOnline != rightOnline)
+                {
+                    return leftOnline ? -1 : 1;
+                }
+
+                string leftName = leftUser == null ? left.ContactId : leftUser.name;
+                string rightName = rightUser == null ? right.ContactId : rightUser.name;
+
+                return string.Compare(leftName, rightName, StringComparison.CurrentCultureIgnoreCase);
             });
+        }
 
-            TextParser.ParseText(txtName, false);
+        private static int CountOnline(List<ContactRow> rows)
+        {
+            int count = 0;
 
-            TextBlock txtQuickMessage = new TextBlock();
-
-            txtQuickMessage.Text = contact.comment;
-            txtQuickMessage.Margin = new Thickness(5, 0, 0, 1);
-            txtQuickMessage.FontFamily = new FontFamily("Segoe UI");
-            txtQuickMessage.FontSize = 12;
-            txtQuickMessage.Foreground = new BrushConverter().ConvertFrom("#888888");
-            txtQuickMessage.FontWeight = FontWeight.Normal;
-
-            paragraph.Inlines.Add(new InlineUIContainer(txtQuickMessage)
+            foreach (ContactRow row in rows)
             {
-                BaselineAlignment = BaselineAlignment.TextBottom
-            });
+                UserInfo user = Find(row.ContactId);
 
-            TextParser.ParseText(txtQuickMessage, true);
-
-            listContacts.Add(new ContactListEntryData(txtContact, imgStatus, txtName, txtQuickMessage));
-
-            if (contact.status != 0)
-            {
-                contactListView.Items.Insert(0, txtContact);
+                if (user != null && user.status != (int)UserStatus.Offline)
+                {
+                    count++;
+                }
             }
-            else
+
+            return count;
+        }
+
+        private static UserInfo Find(string contactId)
+        {
+            if (Personal.USER_CONTACTS == null || contactId == null)
             {
-                contactListView.Items.Insert(contactListView.Items.Count, txtContact);
+                return null;
+            }
+
+            return Personal.USER_CONTACTS.FirstOrDefault(
+                x => string.Equals(x.id.Trim(), contactId.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private ContactRow FindRow(string contactId)
+        {
+            return listContacts.FirstOrDefault(
+                x => string.Equals(x.ContactId.Trim(), (contactId ?? "").Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>Refreshes a row's second line when a new message arrives for that contact.</summary>
+        private void OnConversationChanged(string contactId)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                ContactRow row = FindRow(contactId);
+
+                if (row != null)
+                {
+                    row.RefreshSecondLine(Find(contactId));
+                }
+            });
+        }
+
+        private void FavouriteItem_Click(object sender, RoutedEventArgs e)
+        {
+            string contactId = ((MenuItem)sender).Tag.ToString();
+
+            Config.Favourites.Toggle(contactId);
+
+            // The menu wording flips with the new state.
+            ContactRow row = FindRow(contactId);
+            UserInfo user = Find(contactId);
+
+            if (row != null && user != null)
+            {
+                row.ContextMenu = BuildContactMenu(user);
             }
         }
+
+        #endregion
 
         private void TxtContact_PreviewMouseDoubleClick(object sender, TappedEventArgs e)
         {
             foreach (UserInfo contact in Personal.USER_CONTACTS)
             {
-                if (contact.id.ToString() == ((RichTextBox)sender).Tag.ToString())
+                if (contact.id.ToString() == ((ContactRow)sender).ContactId)
                 {
                     OpenChatWindow(contact);
 
@@ -414,136 +569,86 @@ namespace WLMClient.UI.Controls
 
         public void RemoveContact(string userID)
         {
-            lock (contactListView)
+            lock (listContacts)
             {
-                for (int i = 0; i < contactListView.Items.Count; i++)
+                ContactRow row = FindRow(userID);
+
+                if (row == null)
                 {
-                    if (contactListView.Items[i] is RichTextBox)
+                    return;
+                }
+
+                ManageChatWindows.RemoveChatWindow(userID);
+
+                listContacts.Remove(row);
+
+                UserInfo user = Find(userID);
+
+                if (user != null)
+                {
+                    lock (Personal.USER_CONTACTS)
                     {
-                        if (((RichTextBox)contactListView.Items[i]).Tag.ToString() == userID)
-                        {
-                            ManageChatWindows.RemoveChatWindow(userID);
-
-                            contactListView.Items.Remove(((RichTextBox)contactListView.Items[i]));
-                            UpdateContactCount();
-
-                            ContactListEntryData contactListData = null;
-                            UserInfo user = null;
-                            foreach (ContactListEntryData contactData in listContacts)
-                            {
-                                if (contactData.richTextBox.Tag.ToString() == userID)
-                                {
-                                    contactListData = contactData;
-                                    break;
-                                }
-                            }
-
-                            foreach (UserInfo userData in Personal.USER_CONTACTS)
-                            {
-                                if (userData.id == userID)
-                                {
-                                    user = userData;
-                                    break;
-                                }
-                            }
-
-                            if (user != null)
-                            {
-                                lock (Personal.USER_CONTACTS)
-                                {
-                                    Personal.USER_CONTACTS.Remove(user);
-                                }
-                            }
-
-                            if (contactListData != null)
-                            {
-                                lock (listContacts)
-                                {
-                                    listContacts.Remove(contactListData);
-                                }
-                            }
-
-                            UpdateContactCount();
-
-                            break;
-                        }
+                        Personal.USER_CONTACTS.Remove(user);
                     }
                 }
             }
+
+            RebuildContactList();
         }
 
         private void BlockItem_Click(object sender, RoutedEventArgs e)
         {
-            lock (contactListView)
-            {
-                for (int i = 0; i < contactListView.Items.Count; i++)
-                {
-                    if (contactListView.Items[i] is RichTextBox)
-                    {
-                        if (((RichTextBox)contactListView.Items[i]).Tag.ToString() == ((MenuItem)sender).Tag.ToString())
-                        {
-                            ContextMenu contextMenu = ((RichTextBox)contactListView.Items[i]).ContextMenu;
-
-                            string blockMenuHeaderText = ((MenuItem)contextMenu.Items[2]).Header.ToString();
-
-                            if (blockMenuHeaderText == "Block")
-                            {
-                                ((MenuItem)contextMenu.Items[2]).Header = "Unblock";
-                            }
-                            else
-                            {
-                                ((MenuItem)contextMenu.Items[2]).Header = "Block";
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-
             Client.BlockContact(((MenuItem)sender).Tag.ToString());
         }
 
         void txtContact_MouseLeave(object sender, PointerEventArgs e)
         {
-            if (((RichTextBox)sender).IsFocused == false)
+            ContactRow row = (ContactRow)sender;
+
+            if (row.IsFocused == false)
             {
-                ((RichTextBox)sender).BorderThickness = new Thickness(0);
-                ((RichTextBox)sender).Background = Brushes.Transparent;
+                row.BorderThickness = new Thickness(0);
+                row.Background = Brushes.Transparent;
             }
         }
 
         void txtContact_MouseEnter(object sender, PointerEventArgs e)
         {
-            if (((RichTextBox)sender).IsFocused == false)
+            ContactRow row = (ContactRow)sender;
+
+            if (row.IsFocused == false)
             {
                 LinearGradientBrush gradientBrush = BrushHelper.VerticalGradient(
                     Color.FromRgb(235, 243, 253), Color.FromRgb(252, 253, 254));
 
-                ((RichTextBox)sender).Background = gradientBrush;
-                ((RichTextBox)sender).BorderThickness = new Thickness(1, 1, 1, 1);
-                ((RichTextBox)sender).BorderBrush = new BrushConverter().ConvertFrom("#B8D6FB");
+                row.Background = gradientBrush;
+                row.BorderThickness = new Thickness(1, 1, 1, 1);
+                row.BorderBrush = new BrushConverter().ConvertFrom("#B8D6FB");
             }
         }
 
         void txtContact_PreviewMouseDown(object sender, PointerPressedEventArgs e)
         {
-            foreach (ContactListEntryData contact in listContacts)
+            foreach (ContactRow contact in listContacts)
             {
-                contact.richTextBox.BorderThickness = new Thickness(0);
-                contact.richTextBox.Background = Brushes.Transparent;
+                contact.BorderThickness = new Thickness(0);
+                contact.Background = Brushes.Transparent;
             }
 
             LinearGradientBrush gradientBrush = BrushHelper.VerticalGradient(
                 Color.FromRgb(235, 244, 254), Color.FromRgb(207, 228, 254));
 
-            ((RichTextBox)sender).Background = gradientBrush;
-            ((RichTextBox)sender).BorderThickness = new Thickness(1, 1, 1, 1);
-            ((RichTextBox)sender).BorderBrush = new BrushConverter().ConvertFrom("#84ACDD");
+            ContactRow row = (ContactRow)sender;
+
+            row.Background = gradientBrush;
+            row.BorderThickness = new Thickness(1, 1, 1, 1);
+            row.BorderBrush = new BrushConverter().ConvertFrom("#84ACDD");
         }
 
         public void UpdateContact(UserInfo userInfo)
         {
+            bool needsRebuild;
+
             lock (Personal.USER_CONTACTS)
             {
                 UserInfo userFound = Personal.USER_CONTACTS.FirstOrDefault(p => p.id == userInfo.id.Trim());
@@ -552,80 +657,63 @@ namespace WLMClient.UI.Controls
                 {
                     Personal.USER_CONTACTS.Add(userInfo);
                     AddContactToList(userInfo);
+
+                    return;
                 }
-                else
+
+                bool userJustLoggedOn = false;
+                bool userJustLoggedOff = false;
+
+                ManageChatWindows.UpdateChatWindowUser(userInfo);
+
+                if (userFound.status != userInfo.status & userFound.status == Convert.ToInt16(UserStatus.Offline)
+                    & userInfo.status != Convert.ToInt16(UserStatus.Offline))
                 {
-                    bool userJustLoggedOn = false;
-                    bool userJustLoggedOff = false;
+                    userJustLoggedOn = true;
+                }
 
-                    ManageChatWindows.UpdateChatWindowUser(userInfo);
+                if (userFound.status != userInfo.status & userFound.status != Convert.ToInt16(UserStatus.Offline)
+                    & userInfo.status == Convert.ToInt16(UserStatus.Offline))
+                {
+                    userJustLoggedOff = true;
+                }
 
-                    if (userFound.status != userInfo.status & userFound.status == Convert.ToInt16(UserStatus.Offline)
-                        & userInfo.status != Convert.ToInt16(UserStatus.Offline))
-                    {
-                        userJustLoggedOn = true;
-                    }
+                bool nameChanged = userFound.name != userInfo.name;
 
-                    if (userFound.status != userInfo.status & userFound.status != Convert.ToInt16(UserStatus.Offline)
-                        & userInfo.status == Convert.ToInt16(UserStatus.Offline))
-                    {
-                        userJustLoggedOff = true;
-                    }
+                userFound.name = userInfo.name;
+                userFound.status = userInfo.status;
+                userFound.avatar = userInfo.avatar;
+                userFound.comment = userInfo.comment;
+                userFound.blocked = userInfo.blocked;
 
-                    userFound.name = userInfo.name;
-                    userFound.status = userInfo.status;
-                    userFound.avatar = userInfo.avatar;
-                    userFound.comment = userInfo.comment;
+                ContactRow row = FindRow(userInfo.id);
 
-                    userFound = userInfo;
+                if (row != null)
+                {
+                    row.Update(userFound);
+                    row.ContextMenu = BuildContactMenu(userFound);
+                }
 
-                    foreach (ContactListEntryData contact in listContacts)
-                    {
-                        if (contact.richTextBox.ToolTip.ToString() == userFound.id.ToString())
-                        {
+                // Only a change that affects ordering or the headings needs a full rebuild.
+                needsRebuild = userJustLoggedOn || userJustLoggedOff || nameChanged;
 
-                            contact.image.Source = LoadResource.GetSmallIconFromStatus((UserStatus)userInfo.status);
-                            if (userInfo.comment.Length == 0)
-                            {
-                                contact.name.Text = userInfo.name;
-                            }
-                            else
-                            {
-                                contact.name.Text = userInfo.name + " - ";
-                            }
+                if (userJustLoggedOn & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available) & !userInfo.blocked)
+                {
+                    Notification.NotificationManager.Showpopup(userInfo.name,
+                        Language.Get("notification.signedin"), null);
 
-
-                            if (userJustLoggedOn)
-                            {
-                                contactListView.Items.Remove(contact.richTextBox);
-                                contactListView.Items.Insert(0, contact.richTextBox);
-                            }
-
-                            if (userJustLoggedOff)
-                            {
-                                contactListView.Items.Remove(contact.richTextBox);
-                                contactListView.Items.Insert(contactListView.Items.Count, contact.richTextBox);
-                            }
-
-                            contact.comment.Text = userInfo.comment;
-
-                            TextParser.ParseText(contact.name, false);
-                            TextParser.ParseText(contact.comment, true);
-
-                            break;
-                        }
-                    }
-
-                    if (userJustLoggedOn & Personal.USER_INFO.status == Convert.ToInt16(UserStatus.Available) & !userInfo.blocked)
-                    {
-                        Notification.NotificationManager.Showpopup(userInfo.name, "has just signed in.", null);
-
-                        Resource.Sounds.Player.PlaySound(Resource.Sounds.Identifiers.ONLINE);
-                    }
+                    Resource.Sounds.Player.PlaySound(Resource.Sounds.Identifiers.ONLINE);
                 }
             }
 
-            UpdateContactCount();
+            if (needsRebuild)
+            {
+                RebuildContactList();
+            }
+            else
+            {
+                UpdateContactCount();
+            }
         }
 
         public void UpdateContactCount()
@@ -640,7 +728,7 @@ namespace WLMClient.UI.Controls
                 }
             }
 
-            txtFriends.Text = String.Format("Friends ({0}/{1})", countOnlineContacts, Personal.USER_CONTACTS.Count);
+            txtFriends.Text = Language.Format("main.friends", countOnlineContacts, Personal.USER_CONTACTS.Count);
         }
 
         private void btnAddFriend_Click(object sender, RoutedEventArgs e)

@@ -78,6 +78,10 @@ namespace WLMClient.UI.Windows
 
             txtChat.Document.Blocks.Clear();
 
+            ApplyLanguage();
+            Language.Changed += ApplyLanguage;
+            Closed += (sender, e) => Language.Changed -= ApplyLanguage;
+
             UpdatePersonal();
             UpdateContact(userInfo);
 
@@ -139,7 +143,7 @@ namespace WLMClient.UI.Windows
             IReadOnlyList<IStorageFile> files = await StorageProvider.OpenFilePickerAsync(
                 new FilePickerOpenOptions
                 {
-                    Title = "Send a file to " + contactUserInfo.name,
+                    Title = Language.Format("chat.sendfile.title", contactUserInfo.name),
                     AllowMultiple = true
                 });
 
@@ -160,7 +164,7 @@ namespace WLMClient.UI.Windows
 
             if (path == null)
             {
-                MessageBox.Show("That file cannot be read from its current location.", "Unable to send file",
+                MessageBox.Show(Language.Get("chat.file.unreadable"), Language.Get("chat.file.failed.title"),
                     MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return;
@@ -173,10 +177,10 @@ namespace WLMClient.UI.Windows
                 if (info.Length > FileTransfer.MaximumSize)
                 {
                     MessageBox.Show(
-                        "'" + info.Name + "' is " + Attachments.DescribeSize(info.Length) +
-                        ". The largest file you can send is " +
-                        Attachments.DescribeSize(FileTransfer.MaximumSize) + ".",
-                        "File is too large", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Language.Format("chat.file.toolarge.text", info.Name,
+                            Attachments.DescribeSize(info.Length),
+                            Attachments.DescribeSize(FileTransfer.MaximumSize)),
+                        Language.Get("chat.file.toolarge.title"), MessageBoxButton.OK, MessageBoxImage.Error);
 
                     return;
                 }
@@ -185,12 +189,14 @@ namespace WLMClient.UI.Windows
 
                 Network.Client.SendFile(contactUserInfo.id, info.Name, data);
 
+                Conversations.Record(contactUserInfo.id, Personal.USER_INFO.name, info.Name);
+
                 AddAttachmentMessage(Personal.USER_INFO.name, info.Name, path, data.Length);
             }
             catch (Exception exception)
             {
-                MessageBox.Show("The file could not be sent. " + exception.Message, "Unable to send file",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Language.Format("chat.file.failed.text", exception.Message),
+                    Language.Get("chat.file.failed.title"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -208,7 +214,7 @@ namespace WLMClient.UI.Windows
             }
             catch (Exception exception)
             {
-                AddNudgeMessage("A file from " + contactUserInfo.name + " could not be saved. " + exception.Message);
+                AddNudgeMessage(Language.Format("chat.file.notsaved", contactUserInfo.name, exception.Message));
             }
         }
 
@@ -223,7 +229,7 @@ namespace WLMClient.UI.Windows
                 Paragraph txtFrom = new Paragraph();
 
                 txtFrom.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
-                txtFrom.Inlines.Add(from + " says");
+                txtFrom.Inlines.Add(Language.Format("chat.says", from));
                 txtFrom.TextAlignment = TextAlignment.Justify;
                 txtFrom.Foreground = new BrushConverter().ConvertFrom("#A5A5A5");
                 txtFrom.FontSize = 14;
@@ -319,6 +325,18 @@ namespace WLMClient.UI.Windows
 
         #endregion
 
+        /// <summary>Applies the current language to this conversation window.</summary>
+        private void ApplyLanguage()
+        {
+            btnGame.Content = Language.Get("chat.games");
+
+            ToolTip.SetTip(btnSmiley, Language.Get("chat.smilies"));
+            ToolTip.SetTip(btnNudge, Language.Get("chat.nudge"));
+            ToolTip.SetTip(btnAttach, Language.Get("chat.sendfile"));
+
+            txtStatus.Text = "(" + Language.GetStatus((UserStatus)contactUserInfo.status) + ")";
+        }
+
         public string GetContactID()
         {
             return contactUserInfo.id;
@@ -352,9 +370,9 @@ namespace WLMClient.UI.Windows
             if (from == contactUserInfo.name)
             {
                 txtLastUpdate.Document.Blocks.Clear();
-                txtLastUpdate.Document.Blocks.Add(new Paragraph(new Run("Last message received at " +
-                    lastMessageReceivedDateTime.ToShortTimeString() +
-                    " on " + lastMessageReceivedDateTime.ToShortDateString() + ".")));
+                txtLastUpdate.Document.Blocks.Add(new Paragraph(new Run(Language.Format("chat.lastmessage",
+                    lastMessageReceivedDateTime.ToShortTimeString(),
+                    lastMessageReceivedDateTime.ToShortDateString()))));
             }
 
             Paragraph txtFrom = new Paragraph();
@@ -362,7 +380,7 @@ namespace WLMClient.UI.Windows
 
             txtFrom.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
 
-            txtFrom.Inlines.Add(from + " says");
+            txtFrom.Inlines.Add(Language.Format("chat.says", from));
             txtFrom.TextAlignment = TextAlignment.Justify;
             txtFrom.Foreground = new BrushConverter().ConvertFrom("#A5A5A5");
             txtFrom.FontSize = 14;
@@ -405,7 +423,7 @@ namespace WLMClient.UI.Windows
             {
                 txtLastUpdate.Document.Blocks.Clear();
 
-                Paragraph lastUpdateParagraph = new Paragraph(new Run(contactUserInfo.name + " is writing a message."));
+                Paragraph lastUpdateParagraph = new Paragraph(new Run(Language.Format("chat.writing", contactUserInfo.name)));
 
                 txtLastUpdate.Document.Blocks.Add(lastUpdateParagraph);
 
@@ -414,9 +432,9 @@ namespace WLMClient.UI.Windows
             else
             {
                 txtLastUpdate.Document.Blocks.Clear();
-                txtLastUpdate.Document.Blocks.Add(new Paragraph(new Run("Last message received at " +
-                    lastMessageReceivedDateTime.ToShortTimeString() +
-                    " on " + lastMessageReceivedDateTime.ToShortDateString() + ".")));
+                txtLastUpdate.Document.Blocks.Add(new Paragraph(new Run(Language.Format("chat.lastmessage",
+                    lastMessageReceivedDateTime.ToShortTimeString(),
+                    lastMessageReceivedDateTime.ToShortDateString()))));
             }
         }
 
@@ -448,7 +466,7 @@ namespace WLMClient.UI.Windows
             txtName.Text = userInfo.name;
             TextParser.ParseText(txtName, false);
             this.Title = userInfo.name;
-            txtStatus.Text = "(" + ((UserStatus)userInfo.status).ToString() + ")";
+            txtStatus.Text = "(" + Language.GetStatus((UserStatus)userInfo.status) + ")";
 
             if (userInfo.status == (int)UserStatus.Offline || Personal.USER_INFO.status == (int)UserStatus.Offline || userInfo.blocked == true)
             {
@@ -617,6 +635,8 @@ namespace WLMClient.UI.Windows
 
                 AddChatMessage(Personal.USER_INFO.name, txtSendChat);
 
+                Conversations.Record(contactUserInfo.id, Personal.USER_INFO.name, txtSendChat);
+
                 Network.Client.SendMessage(new Message(contactUserInfo.id, txtSendChat));
 
                 txtSend.Document.Blocks.Clear();
@@ -702,7 +722,7 @@ namespace WLMClient.UI.Windows
         {
             btnNudge.Source = LoadResource.chatWindowButtonNudge(ButtonState.Hover);
 
-            AddNudgeMessage("You have just sent a Nudge!");
+            AddNudgeMessage(Language.Get("chat.nudge.sent"));
             Network.Client.SendNudge(contactUserInfo.id);
         }
 
@@ -732,7 +752,7 @@ namespace WLMClient.UI.Windows
 
         public void Nudge()
         {
-            AddNudgeMessage(contactUserInfo.name + " just sent you a Nudge!");
+            AddNudgeMessage(Language.Format("chat.nudge.received", contactUserInfo.name));
 
             if (Personal.USER_INFO.status == 3 & this.WindowState != WindowState.Maximized)
             {
