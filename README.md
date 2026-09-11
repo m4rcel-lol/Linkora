@@ -2,8 +2,6 @@
 
 A Windows Live Messenger style instant messenger, running on **macOS**, **Linux** and **Windows**.
 
-![Preview1](./Media/wlmclient1.png)
-
 ## Features
 + Add / Remove / Block Contact
 + Send Nudge
