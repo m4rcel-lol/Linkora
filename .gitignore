@@ -9,3 +9,5 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
+.DS_Store
+**/.DS_Store
