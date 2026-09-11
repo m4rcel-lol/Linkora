@@ -315,6 +315,9 @@ namespace WLMClient.Locale
             { "login.server.needed.title", "Server address needed" },
             { "login.server.needed.text", "Enter the address of the Linkora server you want to sign in to.\n\nFor example 127.0.0.1, chat.example.com, or chat.example.com:1323." },
             { "login.signup.needed.text", "Enter the address of the server you want to sign up on first." },
+            { "login.signup.asking", "Sign up\u2026" },
+            { "login.signup.unavailable.title", "No sign up page" },
+            { "login.signup.unavailable.text", "{0} does not offer a sign up page. Ask whoever runs it for an account." },
 
             { "main.quickmessage", "Share a quick message" },
             { "main.friends", "Friends ({0}/{1})" },

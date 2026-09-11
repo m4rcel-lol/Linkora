@@ -28,6 +28,8 @@ namespace WLMData.Enums
         requestUsernameChange,
         sendUsernameChangeResult,
         sendCallSignal,
+        requestServerInfo,
+        sendServerInfo,
         sendVoiceFrame
     };
 }

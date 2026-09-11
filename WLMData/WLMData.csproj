@@ -14,6 +14,7 @@
     <Compile Include="Data\Deserialize.cs" />
     <Compile Include="Data\Packets\CallSignal.cs" />
     <Compile Include="Data\Packets\FileTransfer.cs" />
+    <Compile Include="Data\Packets\ServerInfo.cs" />
     <Compile Include="Data\Packets\FriendRequestResponse.cs" />
     <Compile Include="Data\Packets\LoginRequest.cs" />
     <Compile Include="Data\Packets\LoginResult.cs" />

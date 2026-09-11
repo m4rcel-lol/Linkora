@@ -136,6 +136,22 @@ namespace WLMServer
             Config.Properties.AVATAR_HTTP_PORT = Convert.ToInt32(
                 ConfigurationManager.AppSettings["avatars_http_port"] ?? "0");
             Config.Properties.AVATAR_STORAGE_PATH = ConfigurationManager.AppSettings["avatars_storage_path"] ?? "uploads";
+
+            // The website carries both the sign up page and, when avatars are on, their upload and
+            // download endpoints. "avatars_http_port" is what this setting used to be called, so a
+            // configuration written before the sign up page existed still works untouched.
+            Config.Properties.HTTP_PORT = Convert.ToInt32(
+                ConfigurationManager.AppSettings["http_port"] ?? "0");
+
+            if (Config.Properties.HTTP_PORT == 0)
+            {
+                Config.Properties.HTTP_PORT = Config.Properties.AVATAR_HTTP_PORT;
+            }
+
+            Config.Properties.REGISTRATION_ENABLE = Convert.ToBoolean(
+                ConfigurationManager.AppSettings["registration_enabled"] ?? "false");
+            Config.Properties.REGISTRATION_URL = ConfigurationManager.AppSettings["registration_url"] ?? "";
+            Config.Properties.SERVER_NAME = ConfigurationManager.AppSettings["server_name"] ?? "Linkora";
         }
 
         private static string RequireSetting(string key)

@@ -27,6 +27,12 @@ namespace WLMClient.UI.Controls
         private UserStatus selectedUserStatus;
         private SaveData loginConfiguration;
 
+        /// <summary>
+        /// Identifies the sign up question currently outstanding, so a late answer or the give up
+        /// timer belonging to an earlier click cannot act on a later one. Zero means none.
+        /// </summary>
+        private int signUpRequest;
+
         public Login()
         {
             InitializeComponent();
@@ -101,7 +107,7 @@ namespace WLMClient.UI.Controls
         private void ApplyTheme()
         {
             backgroundDimmer.Background = Config.Theme.ArtworkDimmer;
-            footerArea.Background = Config.Theme.FooterBackground;
+            footerArea.Background = Config.Theme.LoginFooterBackground;
             loginBox.BorderBrush = Config.Theme.Separator;
 
             txtSignInTitle.Foreground = Config.Theme.Accent;
@@ -213,19 +219,81 @@ namespace WLMClient.UI.Controls
         }
 
 
-        /// <summary>Opens the registration page in the user's browser.</summary>
+        /// <summary>
+        /// Opens the registration page in the user's browser. Which page that is comes from the
+        /// server in the box rather than being guessed, so the link either opens a page that
+        /// exists or says the server does not offer one.
+        /// </summary>
         private void txtSignUp_PointerPressed(object sender, PointerPressedEventArgs e)
         {
-            // Follows whatever server is in the box, so the link points at the right place
-            // before the user has signed in anywhere.
-            string url = Config.Properties.GetRegistrationUrl(txtServer.Text);
+            string host;
+            int port;
 
-            if (string.IsNullOrWhiteSpace(url))
+            if (!Config.Properties.TryParseServer(txtServer.Text, out host, out port))
             {
                 MessageBox.Show(Language.Get("login.signup.needed.text"),
                     Language.Get("error.signup.title"), MessageBoxButton.OK, MessageBoxImage.Information);
 
                 txtServer.Focus();
+
+                return;
+            }
+
+            // A locally configured registration_url does not need the server's opinion.
+            string configured = Config.Properties.GetRegistrationUrl(txtServer.Text, "");
+
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                UI.Data.TextParser.OpenUrl(configured);
+
+                return;
+            }
+
+            Config.Properties.SERVER_ADDRESS = host;
+            Config.Properties.SERVER_PORT = port;
+
+            if (!Network.Client.Connect())
+            {
+                return;
+            }
+
+            int request = ++signUpRequest;
+
+            txtSignUp.Text = Language.Get("login.signup.asking");
+
+            string typedServer = txtServer.Text;
+
+            Network.Client.RequestServerInfo(info =>
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => SignUpAnswer(request, typedServer, info)));
+
+            // A server too old to know the question, or one that never answers, must not leave the
+            // link saying it is still asking.
+            Avalonia.Threading.DispatcherTimer.RunOnce(() => SignUpAnswer(request, typedServer, null),
+                TimeSpan.FromSeconds(5));
+        }
+
+        /// <summary>Acts on what the server said about signing up, or on it having said nothing.</summary>
+        private void SignUpAnswer(int request, string typedServer, WLMData.Data.Packets.ServerInfo info)
+        {
+            // Whichever of the answer and the timer arrives first wins, and anything belonging to
+            // an earlier click is ignored outright.
+            if (request != signUpRequest)
+            {
+                return;
+            }
+
+            signUpRequest = 0;
+            txtSignUp.Text = Language.Get("login.signup");
+
+            string url = info == null
+                ? ""
+                : Config.Properties.GetRegistrationUrl(typedServer, info.registrationUrl);
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                MessageBox.Show(Language.Format("login.signup.unavailable.text", typedServer.Trim()),
+                    Language.Get("login.signup.unavailable.title"),
+                    MessageBoxButton.OK, MessageBoxImage.Information);
 
                 return;
             }

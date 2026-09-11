@@ -143,5 +143,19 @@ namespace WLMClient.Config
         }
 
         public static IBrush FooterBorder { get { return Pick(0xFFC1D3E1, 0xFF3A3D42); } }
+
+        /// <summary>
+        /// The panel under the sign in form. It starts at the page background so there is no seam
+        /// where it begins, and only picks up colour towards the very bottom of the window.
+        /// </summary>
+        public static IBrush LoginFooterBackground
+        {
+            get
+            {
+                return Compat.BrushHelper.VerticalGradient(
+                    PickColor(0xFFFFFFFF, 0xFF26282C),
+                    PickColor(0xFFC9E7F3, 0xFF1F2227));
+            }
+        }
     }
 }

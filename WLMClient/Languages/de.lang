@@ -124,3 +124,6 @@ call.unmute = Stummschaltung aufheben
 call.audio.nomicrophone = Verbunden, aber kein Mikrofon gefunden
 call.audio.nospeakers = Verbunden, aber keine Audioausgabe gefunden
 call.audio.none = Verbunden, aber kein Audiogerät gefunden
+login.signup.asking = Registrieren…
+login.signup.unavailable.title = Keine Registrierungsseite
+login.signup.unavailable.text = {0} bietet keine Registrierungsseite an. Bitte den Betreiber um ein Konto.

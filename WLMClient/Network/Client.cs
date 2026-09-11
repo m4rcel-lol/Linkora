@@ -26,8 +26,11 @@ namespace WLMClient.Network
         public static string version = "1.0.0";
         public static ConnectionInfo connectionInfo { get; set; }
 
+        private static readonly object serverInfoLocker = new object();
+        private static Action<ServerInfo> pendingServerInfo;
+
         private static PacketHandler connectionedClosed, authentication, receiveContact, receiveMessage, receiveNudge,
-            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile, receiveUsernameChange, receiveCallSignal, receiveVoiceFrame;
+            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile, receiveUsernameChange, receiveCallSignal, receiveVoiceFrame, receiveServerInfo;
 
         public static void Load(MainWindow mainWindow)
         {
@@ -44,6 +47,7 @@ namespace WLMClient.Network
             receiveUsernameChange = new ReceiveUsernameChange(mainWindow);
             receiveCallSignal = new ReceiveCallSignal(mainWindow);
             receiveVoiceFrame = new ReceiveVoiceFrame(mainWindow);
+            receiveServerInfo = new ReceiveServerInfo(mainWindow);
 
             Personal.USER_CONTACTS = new List<UserInfo>();
             Personal.USER_INFO = null;
@@ -108,6 +112,38 @@ namespace WLMClient.Network
             LoginRequest loginRequest = new LoginRequest(userID, password, status, version);
 
             SendPacket(PacketName.requestLogin.ToString(), loginRequest);
+        }
+
+        /// <summary>
+        /// Asks the server what it will say to somebody who has not signed in yet. The sign in page
+        /// uses this for the "Sign up." link, so it points wherever that particular server puts it.
+        /// The callback runs on the receive thread, and is dropped if the answer never comes.
+        /// </summary>
+        public static void RequestServerInfo(Action<ServerInfo> onAnswer)
+        {
+            lock (serverInfoLocker)
+            {
+                pendingServerInfo = onAnswer;
+            }
+
+            SendPacket(PacketName.requestServerInfo.ToString(), "");
+        }
+
+        /// <summary>Delivers a server's answer to the one request waiting for it, at most once.</summary>
+        public static void CompleteServerInfo(ServerInfo info)
+        {
+            Action<ServerInfo> waiting;
+
+            lock (serverInfoLocker)
+            {
+                waiting = pendingServerInfo;
+                pendingServerInfo = null;
+            }
+
+            if (waiting != null)
+            {
+                waiting(info);
+            }
         }
 
         public static void AddNewContact(string userID)

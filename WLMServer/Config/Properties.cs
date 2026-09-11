@@ -21,5 +21,20 @@ namespace WLMServer.Config
         public static int BROADCAST_INTERVAL;
         public static int AVATAR_HTTP_PORT;
         public static string AVATAR_STORAGE_PATH;
+
+        /// <summary>Port the built in website listens on. 0 means no website at all.</summary>
+        public static int HTTP_PORT;
+
+        /// <summary>Whether the website offers a sign up form.</summary>
+        public static bool REGISTRATION_ENABLE;
+
+        /// <summary>
+        /// What the client is told to open for "Sign up." Set this when the sign up page is behind
+        /// a reverse proxy or hosted elsewhere; otherwise the server works it out from HTTP_PORT.
+        /// </summary>
+        public static string REGISTRATION_URL;
+
+        /// <summary>Shown as the site's heading, so people know which server they are joining.</summary>
+        public static string SERVER_NAME;
     }
 }

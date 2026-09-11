@@ -15,7 +15,7 @@ A Windows Live Messenger style instant messenger, running on **macOS**, **Linux*
 + Voice calls
 + Quick Message
 + Emoticons
-+ Web Registration
++ Sign up page hosted by the server itself
 + Encryption
 + Save ID & Password
 + Auto Login
@@ -72,6 +72,10 @@ Open `Messenger.config` next to the `WLMServer` executable and fill in your deta
   <add key="avatars_address_upload" value="" />
   <add key="avatars_http_port" value="0" />
   <add key="avatars_storage_path" value="uploads" />
+  <add key="http_port" value="8080" />
+  <add key="registration_enabled" value="true" />
+  <add key="registration_url" value="" />
+  <add key="server_name" value="Linkora" />
   <add key="broadcast_interval" value="30" />
 </appSettings>
 ```
@@ -88,8 +92,12 @@ Open `Messenger.config` next to the `WLMServer` executable and fill in your deta
 | avatars_enabled                     | *Whether to use avatars (true/false). Requires the registration page below.*                                                |
 | avatars_address                     | *Where avatars are served from, e.g. `http://localhost/uploads/`*                                                           |
 | avatars_address_upload              | *The upload endpoint the client posts to, e.g. `http://localhost/upload.php`*                                               |
-| avatars_http_port                   | *Port for the built-in avatar webserver. `0` disables it and expects an external webserver instead.*                        |
+| avatars_http_port                   | *Old name for `http_port`, still read when `http_port` is absent.*                                                          |
 | avatars_storage_path                | *Where the built-in webserver keeps uploaded pictures. Relative paths are resolved next to the executable.*                 |
+| http_port                           | *Port for the built-in website, which carries the sign up page and the avatar endpoints. `0` turns the website off.*        |
+| registration_enabled                | *Whether the server hosts a sign up page (true/false).*                                                                     |
+| registration_url                    | *Optional. What clients are told to open for "Sign up." Only needed behind a reverse proxy, or to point at another site.*   |
+| server_name                         | *The name shown on the sign up page.*                                                                                       |
 | broadcast_interval                  | *How often (seconds) the server refreshes every connected user's contact list.*                                             |
 
 > **Important:** `database_password_encryption_key` must be exactly 24 characters and
@@ -111,8 +119,8 @@ You should see `Local End Point: 0.0.0.0:1323`. Server commands:
 | `/listonline` | List online users and their IPs   |
 | `/create`     | Register a new account            |
 
-Create your first accounts with `/create` (it prompts for a username and password), or let
-people register themselves through the web page described below.
+Create your first accounts with `/create` (it prompts for a username and password), or let people
+sign up themselves at `http://<your server>:8080/signup`, which the server hosts by itself.
 
 ## 3. Client
 
@@ -134,7 +142,7 @@ It is remembered between sessions, so most people only ever set it once.
 | ------------------ | ------------------------------------------------------------------------------------------------- |
 | server_address     | *Hostname or IP of your server.*                                                                  |
 | server_port        | *Must match the server's `server_port`.*                                                          |
-| registration_url   | *Optional. Overrides where the "Sign up." link goes. Leave empty and it uses `http://<server address>/`, taken from the box on the sign in page.* |
+| registration_url   | *Optional. Forces where the "Sign up." link goes. Leave empty and the client asks the server, which is what you want unless you are overriding a server you do not run.* |
 
 On macOS that file lives inside the bundle, at
 `Linkora.app/Contents/MacOS/Messenger.config`.
@@ -237,20 +245,20 @@ installed. Without one of those the app runs fine, just silently.
 
 Profile pictures are off by default. There are two ways to turn them on.
 
-### Option A — the built-in avatar server (no webserver needed)
+### Option A — the built-in webserver (no webserver needed)
 
-The server can host pictures itself. Set:
+The server hosts pictures on the same website as the sign up page. Set:
 
 ```xml
 <add key="avatars_enabled" value="true" />
-<add key="avatars_http_port" value="8080" />
+<add key="http_port" value="8080" />
 <add key="avatars_address" value="http://your-server:8080/uploads/" />
 <add key="avatars_address_upload" value="http://your-server:8080/upload" />
 <add key="avatars_storage_path" value="uploads" />
 ```
 
-On start the server reports `Avatar HTTP server listening on port 8080`. Users then set a picture
-from **Options → Browse** in the client; it is resized to 100×100, uploaded, and shown to their
+On start the server reports `Website listening on port 8080`. Users then set a picture from
+**Options → Browse** in the client; it is resized to 100×100, uploaded, and shown to their
 contacts.
 
 `avatars_address` must be reachable *by the clients*, so use the server's real hostname or IP
@@ -258,8 +266,8 @@ rather than `localhost` when they run on other machines. Open the port in your f
 
 ### Option B — the PHP registration page
 
-If you already run a webserver, point the two addresses at the bundled `upload.php` instead and
-leave `avatars_http_port` at `0`. See the next section.
+If you already run a webserver, point the two addresses at the bundled `upload.php` instead. See
+"The old PHP page" further down.
 
 > Uploaded pictures are served over plain HTTP and are readable by anyone who can reach the port.
 > Put it behind a reverse proxy with TLS if that matters to you.
@@ -391,18 +399,53 @@ or extra storage is involved.
 
 ---
 
-# Registration Page (optional)
+# Signing up
 
-A small PHP page that lets people register accounts themselves and upload avatars.
+The server hosts its own sign up page, so a new Linkora server needs nothing else installed for
+people to get accounts on it. With the default config it is at:
 
-Copy the `Registration Page` folder to your webserver and make `uploads/` writable if you intend
-to use avatars.
+```
+http://<your server>:8080/signup
+```
 
-The **"Sign up."** link on the sign in page follows whatever server address the user has typed:
-with `chat.example.com` in the box it opens `http://chat.example.com/`. So if you serve this
-folder from the web root of the machine running the server, the link works with no configuration
-at all. Set `registration_url` in the client's `Messenger.config` only when the page lives
-somewhere else, such as a different host, a subdirectory or HTTPS. Open `config.php` and fill in the database details:
+That is what the **"Sign up."** link on the sign in page opens. The link does not guess: the
+client asks the server where its sign up page is, and opens what it is told. Which means:
+
+* A server that hosts the page answers with its own port, and the client puts in front of it the
+  same address the person typed to connect. A name, a LAN address and a tunnel all reach the same
+  server, and only the one they used will work for them, so only they can fill that part in.
+* A server with `registration_enabled` set to `false` answers with nothing, and the client says
+  that server does not offer sign up rather than opening a page that is not there.
+
+The page checks that the name is free and usable and that the password is at least six characters,
+then creates the account. Accounts made this way are ordinary accounts: they sign in immediately,
+with no further step.
+
+### Behind a reverse proxy, or somewhere else entirely
+
+`registration_url` is what clients are told to open, and nothing else:
+
+```xml
+<!-- HTTPS in front of the server's own page: the page keeps running, this is just the way in -->
+<add key="registration_enabled" value="true" />
+<add key="registration_url" value="https://chat.example.com/signup" />
+
+<!-- sign up handled by a different site: no page here, clients are sent there -->
+<add key="registration_enabled" value="false" />
+<add key="registration_url" value="https://accounts.example.com/" />
+```
+
+### Turning sign up off
+
+Set `registration_enabled` to `false` and leave `registration_url` empty. The sign up page is
+gone, the link tells people so, and accounts are made with `/create` on the server console.
+
+### The old PHP page
+
+`Registration Page/` is still in the repository and still works, for anyone who would rather run
+it on a webserver they already have. Copy the folder to your webserver, make `uploads/` writable
+if you want avatars, and point `registration_url` at it. Open `config.php` and fill in the
+database details:
 
 ```php
 <?php
@@ -417,9 +460,10 @@ $encryption_iv = 'CHANGE_ME_123456';
 
 `$encryption_key` and `$encryption_iv` **must match** `database_password_encryption_key` and
 `database_password_encryption_iv` in the server's `Messenger.config`, otherwise accounts created
-through the web page cannot sign in.
+through the web page cannot sign in. The server's own page has no such setting to get wrong,
+because it uses the server's.
 
-To enable avatars, set these in the server config:
+To use its avatar endpoints instead of the built-in ones:
 
 ```xml
 <add key="avatars_enabled" value="true" />

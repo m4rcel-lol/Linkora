@@ -19,7 +19,8 @@
     <Compile Include="Database\DBConnection.cs" />
     <Compile Include="Database\PasswordEncrypter.cs" />
     <Compile Include="Data\ContactRegister.cs" />
-    <Compile Include="Network\AvatarHttpServer.cs" />
+    <Compile Include="Network\WebServer.cs" />
+    <Compile Include="Network\SignUpPage.cs" />
     <Compile Include="Network\PacketHandler.cs" />
     <Compile Include="Network\PacketHandling\AddNewContact.cs" />
     <Compile Include="Network\PacketHandling\Authentication.cs" />
@@ -32,6 +33,7 @@
     <Compile Include="Network\PacketHandling\TransferMessage.cs" />
     <Compile Include="Network\PacketHandling\TransferNudge.cs" />
     <Compile Include="Network\PacketHandling\TransferVoice.cs" />
+    <Compile Include="Network\PacketHandling\ServerInformation.cs" />
     <Compile Include="Network\PacketHandling\TransferWritingStatus.cs" />
     <Compile Include="Network\Server.cs" />
     <Compile Include="Network\UserData\ConnectedUser.cs" />

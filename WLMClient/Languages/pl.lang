@@ -124,3 +124,6 @@ call.unmute = Włącz mikrofon
 call.audio.nomicrophone = Połączono, ale nie znaleziono mikrofonu
 call.audio.nospeakers = Połączono, ale nie znaleziono wyjścia audio
 call.audio.none = Połączono, ale nie znaleziono żadnego urządzenia audio
+login.signup.asking = Zarejestruj się…
+login.signup.unavailable.title = Brak strony rejestracji
+login.signup.unavailable.text = {0} nie udostępnia strony rejestracji. Poproś o konto osobę, która prowadzi ten serwer.

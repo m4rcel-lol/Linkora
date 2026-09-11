@@ -83,16 +83,32 @@ namespace WLMClient.Config
         }
 
         /// <summary>
-        /// Where the "Sign up." link should go for a given server address. An explicit
-        /// registration_url always wins; otherwise the registration page is assumed to be served
-        /// from the same host as the server, which is how the bundled one is meant to be deployed.
-        /// The messaging port is dropped because the web server is a different service.
+        /// Turns what a server advertises as its sign up page into a URL to open. A local
+        /// registration_url in the client's own configuration still wins, for anyone who wants the
+        /// link to go somewhere else entirely.
+        ///
+        /// A server that hosts the page itself answers with just ":port/signup", because only this
+        /// end knows which address it actually reached the server on: a name, a LAN address and a
+        /// tunnel all lead to the same server, and only the one the user typed will work for them.
+        /// A server behind a reverse proxy answers with a whole URL instead, which is used as is.
         /// </summary>
-        public static string GetRegistrationUrl(string serverText)
+        public static string GetRegistrationUrl(string serverText, string advertised)
         {
             if (!string.IsNullOrWhiteSpace(REGISTRATION_URL))
             {
                 return REGISTRATION_URL.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(advertised))
+            {
+                return "";
+            }
+
+            advertised = advertised.Trim();
+
+            if (advertised.IndexOf("://", StringComparison.Ordinal) >= 0)
+            {
+                return advertised;
             }
 
             string host;
@@ -109,7 +125,7 @@ namespace WLMClient.Config
                 host = "[" + host + "]";
             }
 
-            return "http://" + host + "/";
+            return "http://" + host + advertised;
         }
 
         /// <summary>What to show as the current server, falling back to the configured address.</summary>

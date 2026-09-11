@@ -124,3 +124,6 @@ call.unmute = Réactiver le micro
 call.audio.nomicrophone = Connecté, mais aucun microphone trouvé
 call.audio.nospeakers = Connecté, mais aucune sortie audio trouvée
 call.audio.none = Connecté, mais aucun périphérique audio trouvé
+login.signup.asking = S'inscrire…
+login.signup.unavailable.title = Pas de page d'inscription
+login.signup.unavailable.text = {0} ne propose pas de page d'inscription. Demandez un compte à la personne qui l'héberge.

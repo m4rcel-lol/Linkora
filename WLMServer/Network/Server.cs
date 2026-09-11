@@ -31,8 +31,8 @@ namespace WLMServer.Network
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private PacketHandler authentication, addNewContact, addNewContactResponse, personalUserUpdate,
             deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus, transferFile,
-            changeUsername, transferCall, transferVoice;
-        private AvatarHttpServer avatarHttpServer;
+            changeUsername, transferCall, transferVoice, serverInformation;
+        private WebServer webServer;
         public AccountManager accountManager;
 
         public Server()
@@ -51,6 +51,7 @@ namespace WLMServer.Network
             changeUsername = new PacketHandling.ChangeUsername(this);
             transferCall = new PacketHandling.TransferCall(this);
             transferVoice = new PacketHandling.TransferVoice(this);
+            serverInformation = new PacketHandling.ServerInformation(this);
 
             accountManager = new AccountManager();
 
@@ -71,18 +72,25 @@ namespace WLMServer.Network
                 Program.WriteToConsole("Local End Point: " + listenEndPoint.Address + ":" + listenEndPoint.Port);
             }
 
-            StartAvatarHttpServer();
+            StartWebServer();
 
             BroadCastContacts(Config.Properties.BROADCAST_INTERVAL);
         }
 
         /// <summary>
-        /// Starts the optional built-in avatar webserver, so profile pictures work without a
-        /// separate PHP install. Disabled when avatars_http_port is 0.
+        /// Starts the built-in website, which carries the sign up page and, when avatars are on,
+        /// their upload and download endpoints. Disabled when http_port is 0, in which case sign up
+        /// is the console's "register" command and avatars need the bundled upload.php elsewhere.
         /// </summary>
-        private void StartAvatarHttpServer()
+        private void StartWebServer()
         {
-            if (!Config.Properties.AVATAR_ENABLE || Config.Properties.AVATAR_HTTP_PORT <= 0)
+            bool wantAvatars = Config.Properties.AVATAR_ENABLE;
+
+            // registration_url is only about what the client is told to open, which may well be a
+            // proxy in front of this very page, so it has no say in whether the page runs.
+            bool wantRegistration = Config.Properties.REGISTRATION_ENABLE;
+
+            if (Config.Properties.HTTP_PORT <= 0 || (!wantAvatars && !wantRegistration))
             {
                 return;
             }
@@ -96,13 +104,14 @@ namespace WLMServer.Network
                     storagePath = System.IO.Path.Combine(AppContext.BaseDirectory, storagePath);
                 }
 
-                avatarHttpServer = new AvatarHttpServer(Config.Properties.AVATAR_HTTP_PORT, storagePath);
-                avatarHttpServer.Start();
+                webServer = new WebServer(Config.Properties.HTTP_PORT, storagePath,
+                    wantAvatars, wantRegistration);
+                webServer.Start();
             }
             catch (Exception exception)
             {
-                Program.WriteToConsole("Could not start the avatar webserver: " + exception.Message);
-                Program.WriteToConsole("Avatars will not work until this is resolved.");
+                Program.WriteToConsole("Could not start the website: " + exception.Message);
+                Program.WriteToConsole("Sign up and avatars will not work until this is resolved.");
             }
         }
 

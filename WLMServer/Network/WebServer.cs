@@ -6,34 +6,59 @@ using System.Net;
 using System.Text;
 using System.Threading;
 
+using WLMServer.Database;
+
 namespace WLMServer.Network
 {
     /// <summary>
-    /// A small HTTP server for profile pictures, so avatars work without a separate PHP webserver.
-    /// It speaks the same two endpoints the client already expects:
+    /// The server's own small website, so a Linkora server needs nothing else installed to be
+    /// usable. It serves:
     ///
+    ///   GET  /                the sign up page
+    ///   GET  /signup          the same page
+    ///   POST /signup          creates the account
     ///   POST /upload          multipart/form-data with a "file" field, replies with the stored name
     ///   GET  /uploads/&lt;name&gt;  serves a stored picture
     ///
-    /// Point avatars_address and avatars_address_upload at it, or keep using upload.php instead.
+    /// The avatar endpoints are the two the client already expected from the bundled upload.php,
+    /// so pointing avatars_address and avatars_address_upload here is enough; keeping upload.php
+    /// on a separate webserver still works too.
     /// </summary>
-    class AvatarHttpServer
+    class WebServer
     {
         /// <summary>Matches the limit the bundled upload.php enforced.</summary>
         private const int MaximumUploadSize = 5 * 1024 * 1024;
 
         private static readonly string[] AllowedExtensions = { ".png", ".jpg", ".jpeg", ".jpe", ".jfif", ".gif" };
 
+        /// <summary>Long enough for a passphrase, short enough that nothing is being smuggled.</summary>
+        private const int MaximumFormSize = 8 * 1024;
+
         private readonly HttpListener listener = new HttpListener();
         private readonly string uploadsDirectory;
         private readonly int port;
+        private readonly bool avatarsEnabled;
+        private readonly bool registrationEnabled;
 
-        public AvatarHttpServer(int port, string uploadsDirectory)
+        /// <summary>
+        /// Registration gets its own database connection. The one the messenger side uses is a
+        /// single unpooled connection driven from the network threads, and requests here arrive on
+        /// thread pool threads; sharing it would mean two threads on one connection.
+        /// </summary>
+        private readonly object registrationLocker = new object();
+        private AccountManager registrationAccounts;
+
+        public WebServer(int port, string uploadsDirectory, bool avatarsEnabled, bool registrationEnabled)
         {
             this.port = port;
             this.uploadsDirectory = uploadsDirectory;
+            this.avatarsEnabled = avatarsEnabled;
+            this.registrationEnabled = registrationEnabled;
 
-            Directory.CreateDirectory(uploadsDirectory);
+            if (avatarsEnabled)
+            {
+                Directory.CreateDirectory(uploadsDirectory);
+            }
 
             listener.Prefixes.Add("http://+:" + port + "/");
         }
@@ -52,12 +77,21 @@ namespace WLMServer.Network
                 listener.Start();
             }
 
-            Program.WriteToConsole("Avatar HTTP server listening on port " + port +
-                " (files in " + uploadsDirectory + ")");
+            Program.WriteToConsole("Website listening on port " + port);
+
+            if (registrationEnabled)
+            {
+                Program.WriteToConsole("  sign up page at " + GetRegistrationUrl());
+            }
+
+            if (avatarsEnabled)
+            {
+                Program.WriteToConsole("  avatars stored in " + uploadsDirectory);
+            }
 
             Thread thread = new Thread(Listen);
             thread.IsBackground = true;
-            thread.Name = "Avatar HTTP server";
+            thread.Name = "Website";
             thread.Start();
         }
 
@@ -90,14 +124,24 @@ namespace WLMServer.Network
             try
             {
                 string path = context.Request.Url.AbsolutePath;
+                string method = context.Request.HttpMethod;
+                string trimmed = path.TrimEnd('/');
 
-                if (context.Request.HttpMethod == "POST" && path.TrimEnd('/').EndsWith("/upload"))
+                if (avatarsEnabled && method == "POST" && trimmed.EndsWith("/upload"))
                 {
                     HandleUpload(context);
                 }
-                else if (context.Request.HttpMethod == "GET" && path.StartsWith("/uploads/"))
+                else if (avatarsEnabled && method == "GET" && path.StartsWith("/uploads/"))
                 {
                     HandleDownload(context, path.Substring("/uploads/".Length));
+                }
+                else if (registrationEnabled && method == "GET" && (trimmed.Length == 0 || trimmed == "/signup"))
+                {
+                    WriteHtml(context, 200, SignUpPage.Form(null, null));
+                }
+                else if (registrationEnabled && method == "POST" && trimmed == "/signup")
+                {
+                    HandleSignUp(context);
                 }
                 else
                 {
@@ -106,10 +150,147 @@ namespace WLMServer.Network
             }
             catch (Exception exception)
             {
-                Program.WriteToConsole("Avatar HTTP error: " + exception.Message);
+                Program.WriteToConsole("Website error: " + exception.Message);
 
                 try { WriteText(context, 500, "0"); } catch { }
             }
+        }
+
+        /// <summary>Creates an account from the sign up form and reports back on the same page.</summary>
+        private void HandleSignUp(HttpListenerContext context)
+        {
+            if (context.Request.ContentLength64 > MaximumFormSize)
+            {
+                WriteHtml(context, 413, SignUpPage.Form("That was too long to be a sign in name.", null));
+                return;
+            }
+
+            Dictionary<string, string> form = ParseForm(
+                Encoding.UTF8.GetString(ReadAll(context.Request.InputStream, MaximumFormSize)));
+
+            string username = (Value(form, "username") ?? "").Trim();
+            string password = Value(form, "password") ?? "";
+            string confirm = Value(form, "confirm") ?? "";
+
+            if (!AccountManager.IsValidUsername(username))
+            {
+                WriteHtml(context, 400, SignUpPage.Form(
+                    "A sign in name can only use letters, numbers, dots, dashes and underscores, " +
+                    "and has to be shorter than 30 characters.", username));
+                return;
+            }
+
+            if (password.Length < 6)
+            {
+                WriteHtml(context, 400, SignUpPage.Form(
+                    "Pick a password of at least six characters.", username));
+                return;
+            }
+
+            if (password != confirm)
+            {
+                WriteHtml(context, 400, SignUpPage.Form(
+                    "The two passwords do not match.", username));
+                return;
+            }
+
+            bool created;
+
+            lock (registrationLocker)
+            {
+                if (registrationAccounts == null)
+                {
+                    registrationAccounts = new AccountManager();
+                }
+
+                // Checked and inserted under the same lock, so two people signing up at the same
+                // moment cannot both be told the name was free.
+                if (registrationAccounts.IsUserInDatabase(username))
+                {
+                    created = false;
+                }
+                else
+                {
+                    registrationAccounts.InsertNewAccount(username, password);
+                    created = true;
+                }
+            }
+
+            if (!created)
+            {
+                WriteHtml(context, 409, SignUpPage.Form(
+                    "Somebody already signs in with that name.", username));
+                return;
+            }
+
+            Program.WriteToConsole("Account " + username + " signed up from " +
+                context.Request.RemoteEndPoint.Address);
+
+            WriteHtml(context, 200, SignUpPage.Done(username));
+        }
+
+        /// <summary>
+        /// Where the client should send people who click "Sign up." An explicit registration_url is
+        /// always what gets advertised, whether it is a proxy sitting in front of the page below or
+        /// a different site entirely; registration_enabled only decides whether this server hosts a
+        /// page of its own.
+        /// </summary>
+        public static string GetRegistrationUrl()
+        {
+            if (!string.IsNullOrWhiteSpace(Config.Properties.REGISTRATION_URL))
+            {
+                return Config.Properties.REGISTRATION_URL.Trim();
+            }
+
+            if (!Config.Properties.REGISTRATION_ENABLE || Config.Properties.HTTP_PORT <= 0)
+            {
+                return "";
+            }
+
+            // The host is left out on purpose. Only the client knows which address it reached this
+            // server on, so it fills that in; hard-coding one here breaks every other route in.
+            return ":" + Config.Properties.HTTP_PORT + "/signup";
+        }
+
+        private static string Value(Dictionary<string, string> form, string key)
+        {
+            string value;
+
+            return form.TryGetValue(key, out value) ? value : null;
+        }
+
+        private static Dictionary<string, string> ParseForm(string body)
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (string pair in body.Split('&'))
+            {
+                if (pair.Length == 0)
+                {
+                    continue;
+                }
+
+                int separator = pair.IndexOf('=');
+
+                string name = separator < 0 ? pair : pair.Substring(0, separator);
+                string value = separator < 0 ? "" : pair.Substring(separator + 1);
+
+                values[Uri.UnescapeDataString(name.Replace('+', ' '))] =
+                    Uri.UnescapeDataString(value.Replace('+', ' '));
+            }
+
+            return values;
+        }
+
+        private static void WriteHtml(HttpListenerContext context, int statusCode, string html)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(html);
+
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "text/html; charset=utf-8";
+            context.Response.ContentLength64 = bytes.Length;
+            context.Response.OutputStream.Write(bytes, 0, bytes.Length);
+            context.Response.Close();
         }
 
         /// <summary>Stores an uploaded picture and replies with the name it was saved under.</summary>
