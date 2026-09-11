@@ -28,7 +28,7 @@ namespace WLMClient.UI.Controls.Dialogs
             Height = clientHeight;
             CanResize = false;
             ShowInTaskbar = false;
-            Background = Brushes.White;
+            Background = Config.Theme.DialogBackground;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             SizeToContent = SizeToContent.Manual;
 
@@ -36,7 +36,7 @@ namespace WLMClient.UI.Controls.Dialogs
             {
                 Width = clientWidth,
                 Height = clientHeight,
-                Background = Brushes.White
+                Background = Config.Theme.DialogBackground
             };
 
             Content = Root;
@@ -61,17 +61,11 @@ namespace WLMClient.UI.Controls.Dialogs
             {
                 Width = width,
                 Height = height,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0xA0, 0xA0, 0xA0)),
+                BorderBrush = Config.Theme.Separator,
                 BorderThickness = new Thickness(1)
             };
 
             Add(box, left, top);
-
-            Border headerBackground = new Border
-            {
-                Background = Brushes.White,
-                Height = 14
-            };
 
             TextBlock headerText = new TextBlock
             {
@@ -79,8 +73,10 @@ namespace WLMClient.UI.Controls.Dialogs
                 FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
                 FontSize = 12 * PointToPixel,
                 FontWeight = FontWeight.Bold,
-                Foreground = Brushes.Black,
-                Background = Brushes.White,
+                Foreground = Config.Theme.TextPrimary,
+
+                // Painted over the box's outline so the heading appears to break it.
+                Background = Config.Theme.DialogBackground,
                 Padding = new Thickness(4, 0, 4, 0)
             };
 
@@ -94,7 +90,7 @@ namespace WLMClient.UI.Controls.Dialogs
                 Text = text,
                 FontFamily = new FontFamily(fontFamily),
                 FontSize = pointSize * PointToPixel,
-                Foreground = foreground ?? Brushes.Black
+                Foreground = foreground ?? Config.Theme.TextPrimary
             };
         }
 
@@ -139,8 +135,8 @@ namespace WLMClient.UI.Controls.Dialogs
                 Width = width,
                 Height = height,
                 Background = background,
-                Foreground = foreground ?? Brushes.Black,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0x9A, 0x9A)),
+                Foreground = foreground ?? Config.Theme.TextPrimary,
+                BorderBrush = Config.Theme.Separator,
                 BorderThickness = new Thickness(1),
                 FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
                 FontSize = 9.75 * PointToPixel,

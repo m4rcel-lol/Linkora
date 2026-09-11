@@ -79,8 +79,16 @@ namespace WLMClient.UI.Windows
             txtChat.Document.Blocks.Clear();
 
             ApplyLanguage();
+            ApplyTheme();
+
             Language.Changed += ApplyLanguage;
-            Closed += (sender, e) => Language.Changed -= ApplyLanguage;
+            Config.Theme.Changed += ApplyTheme;
+
+            Closed += (sender, e) =>
+            {
+                Language.Changed -= ApplyLanguage;
+                Config.Theme.Changed -= ApplyTheme;
+            };
 
             UpdatePersonal();
             UpdateContact(userInfo);
@@ -231,7 +239,7 @@ namespace WLMClient.UI.Windows
                 txtFrom.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
                 txtFrom.Inlines.Add(Language.Format("chat.says", from));
                 txtFrom.TextAlignment = TextAlignment.Justify;
-                txtFrom.Foreground = new BrushConverter().ConvertFrom("#A5A5A5");
+                txtFrom.Foreground = Config.Theme.ChatFrom;
                 txtFrom.FontSize = 14;
                 txtFrom.FontWeight = FontWeight.Normal;
                 txtFrom.Margin = new Thickness(0, 24, 0, 0);
@@ -288,7 +296,7 @@ namespace WLMClient.UI.Windows
             // Without a background the text block is not hit testable and cannot be clicked.
             block.Background = Brushes.Transparent;
             block.TextDecorations = TextDecorations.Underline;
-            block.Foreground = Brushes.Blue;
+            block.Foreground = Config.Theme.Link;
             block.FontSize = 13;
 
             ToolTip.SetTip(block, path);
@@ -337,6 +345,25 @@ namespace WLMClient.UI.Windows
             txtStatus.Text = "(" + Language.GetStatus((UserStatus)contactUserInfo.status) + ")";
         }
 
+        /// <summary>Repaints the surfaces this window draws itself.</summary>
+        private void ApplyTheme()
+        {
+            Background = Config.Theme.WindowBackground;
+            backgroundDimmer.Background = Config.Theme.ArtworkDimmer;
+
+            composeArea.Background = Config.Theme.ComposeBackground;
+            composeBorder.BorderBrush = Config.Theme.Separator;
+
+            txtSend.Background = Config.Theme.ComposeBackground;
+            txtSend.Foreground = Config.Theme.ChatText;
+
+            txtChat.Foreground = Config.Theme.ChatText;
+            txtLastUpdate.Foreground = Config.Theme.TextSecondary;
+
+            txtName.Foreground = Config.Theme.TextPrimary;
+            txtStatus.Foreground = Config.Theme.TextPrimary;
+        }
+
         public string GetContactID()
         {
             return contactUserInfo.id;
@@ -382,7 +409,7 @@ namespace WLMClient.UI.Windows
 
             txtFrom.Inlines.Add(Language.Format("chat.says", from));
             txtFrom.TextAlignment = TextAlignment.Justify;
-            txtFrom.Foreground = new BrushConverter().ConvertFrom("#A5A5A5");
+            txtFrom.Foreground = Config.Theme.ChatFrom;
             txtFrom.FontSize = 14;
             txtFrom.FontWeight = FontWeight.Normal;
             txtFrom.Margin = new Thickness(0, 24, 0, 0);
@@ -733,7 +760,7 @@ namespace WLMClient.UI.Windows
             Paragraph txtText = new Paragraph();
             txtText.Inlines.Add(text);
             txtText.TextAlignment = TextAlignment.Justify;
-            txtText.Foreground = new BrushConverter().ConvertFrom("#29292B");
+            txtText.Foreground = Config.Theme.NudgeText;
             txtText.FontSize = 13;
             txtText.FontWeight = FontWeight.Normal;
             txtText.LineHeight = 18;
@@ -741,7 +768,7 @@ namespace WLMClient.UI.Windows
             txtText.Margin = new Thickness(0, 10, 0, 0);
             txtText.Padding = new Thickness(5);
 
-            txtText.BorderBrush = new BrushConverter().ConvertFrom("#eaeaea");
+            txtText.BorderBrush = Config.Theme.NudgeBorder;
             txtText.BorderThickness = new Thickness(0, 2, 0, 2);
 
             txtChat.Document.Blocks.Add(txtText);

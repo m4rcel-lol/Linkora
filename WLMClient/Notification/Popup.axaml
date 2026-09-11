@@ -36,6 +36,9 @@
         </Border>
         <Image Source="avares://WLMClient/Content/Icons/33.png" Width="24" Height="24"
                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8"></Image>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="38 12 8 8" Text="Linkora"></TextBlock>
+        <!-- The popup keeps its own light blue styling in both themes, so its text colour is
+             fixed rather than inherited. -->
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="38 12 8 8"
+                   Foreground="#FF3D4D5D" Text="Linkora"></TextBlock>
     </Grid>
 </Window>

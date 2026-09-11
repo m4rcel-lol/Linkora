@@ -61,6 +61,30 @@ namespace WLMClient.UI.Controls
             isCommentBeingEdited = false;
 
             ApplyLanguage();
+            ApplyTheme();
+        }
+
+        /// <summary>Repaints the surfaces this page draws itself.</summary>
+        private void ApplyTheme()
+        {
+            listContactBorder.Background = Config.Theme.ListBackground;
+            contactListView.Background = Config.Theme.ListBackground;
+
+            txtQuickMessage.Background = Config.Theme.ComposeBackground;
+            txtQuickMessage.Foreground = Config.Theme.TextPrimary;
+            txtFriends.Foreground = Config.Theme.TextPrimary;
+            txtVersion.Foreground = Config.Theme.VersionText;
+            backgroundDimmer.Background = Config.Theme.ArtworkDimmer;
+            footerArea.Background = Config.Theme.FooterBackground;
+            footerBorder.BorderBrush = Config.Theme.FooterBorder;
+
+            foreach (ContactRow row in listContacts)
+            {
+                row.ApplyTheme();
+            }
+
+            favouritesHeader.ApplyTheme();
+            contactsHeader.ApplyTheme();
         }
 
         private void WireEvents()
@@ -86,12 +110,14 @@ namespace WLMClient.UI.Controls
             menuItemArrowOptions.Click += menuItemArrowOptions_Click;
             menuItemArrowExit.Click += menuItemArrowExit_Click;
 
+            Config.Theme.Changed += ApplyTheme;
             Conversations.Changed += OnConversationChanged;
             Config.Favourites.Changed += RebuildContactList;
             Language.Changed += ApplyLanguage;
 
             DetachedFromVisualTree += (sender, e) =>
             {
+                Config.Theme.Changed -= ApplyTheme;
                 Conversations.Changed -= OnConversationChanged;
                 Config.Favourites.Changed -= RebuildContactList;
                 Language.Changed -= ApplyLanguage;
@@ -327,6 +353,7 @@ namespace WLMClient.UI.Controls
             row.PointerExited += txtContact_MouseLeave;
 
             row.Update(contact);
+            row.ApplyTheme();
 
             listContacts.Add(row);
 
@@ -620,12 +647,10 @@ namespace WLMClient.UI.Controls
 
             if (row.IsFocused == false)
             {
-                LinearGradientBrush gradientBrush = BrushHelper.VerticalGradient(
-                    Color.FromRgb(235, 243, 253), Color.FromRgb(252, 253, 254));
-
-                row.Background = gradientBrush;
+                row.Background = BrushHelper.VerticalGradient(
+                    Config.Theme.RowHoverFrom, Config.Theme.RowHoverTo);
                 row.BorderThickness = new Thickness(1, 1, 1, 1);
-                row.BorderBrush = new BrushConverter().ConvertFrom("#B8D6FB");
+                row.BorderBrush = Config.Theme.RowHoverBorder;
             }
         }
 
@@ -637,14 +662,12 @@ namespace WLMClient.UI.Controls
                 contact.Background = Brushes.Transparent;
             }
 
-            LinearGradientBrush gradientBrush = BrushHelper.VerticalGradient(
-                Color.FromRgb(235, 244, 254), Color.FromRgb(207, 228, 254));
-
             ContactRow row = (ContactRow)sender;
 
-            row.Background = gradientBrush;
+            row.Background = BrushHelper.VerticalGradient(
+                Config.Theme.RowSelectedFrom, Config.Theme.RowSelectedTo);
             row.BorderThickness = new Thickness(1, 1, 1, 1);
-            row.BorderBrush = new BrushConverter().ConvertFrom("#84ACDD");
+            row.BorderBrush = Config.Theme.RowSelectedBorder;
         }
 
         public void UpdateContact(UserInfo userInfo)

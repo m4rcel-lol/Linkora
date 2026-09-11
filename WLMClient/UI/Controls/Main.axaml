@@ -18,6 +18,10 @@
                RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
                Stretch="Fill" StretchDirection="Both"></Image>
 
+        <!-- Tones the fixed header artwork down in the dark theme. -->
+        <Border Grid.Row="0" x:Name="backgroundDimmer" Height="90" VerticalAlignment="Top"
+                Background="Transparent" IsHitTestVisible="False" />
+
         <Border Grid.Row="0" BorderThickness="0 0 0 1" BorderBrush="WhiteSmoke">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="8" OffsetX="0.17" OffsetY="0.98" Color="Black" Opacity="1" />
@@ -145,7 +149,7 @@
         </Grid>
 
         <Grid Grid.Row="1" x:Name="listContactBorder" UseLayoutRounding="True" Background="#FCFCFC">
-            <TextBlock x:Name="txtFriends" Text="Friends (0/0)" Background="#FCFCFC" Margin="7 5 0 0" FontSize="17"
+            <TextBlock x:Name="txtFriends" Text="Friends (0/0)" Margin="7 5 0 0" FontSize="17"
                        FontWeight="Regular" Foreground="#FF2A2A2A" VerticalAlignment="Top"></TextBlock>
             <TreeView IsTabStop="False" KeyboardNavigation.TabNavigation="None" Focusable="False"
                       Margin="0, 35, 0, 0" Background="#FCFCFC" x:Name="contactListView"
@@ -154,7 +158,7 @@
             </TreeView>
         </Grid>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" x:Name="footerArea">
             <Border BorderThickness="2" BorderBrush="#FF555961" VerticalAlignment="Top" HorizontalAlignment="Center"
                     Width="234" Height="60" Margin="0 10 0 0">
                 <Image VerticalAlignment="Top" Width="234" Margin="0 0 0 0" Height="60"
@@ -171,6 +175,6 @@
                 </LinearGradientBrush>
             </Grid.Background>
         </Grid>
-        <Border Grid.Row="2" BorderThickness="0 2 0 0" BorderBrush="#FFC1D3E1"></Border>
+        <Border Grid.Row="2" x:Name="footerBorder" BorderThickness="0 2 0 0" BorderBrush="#FFC1D3E1"></Border>
     </Grid>
 </UserControl>

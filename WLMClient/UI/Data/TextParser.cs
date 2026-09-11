@@ -280,7 +280,7 @@ namespace WLMClient.UI.Data
             // A text block with no background is not hit testable, so it would never be clickable.
             block.Background = Brushes.Transparent;
             block.TextDecorations = TextDecorations.Underline;
-            block.Foreground = Brushes.Blue;
+            block.Foreground = WLMClient.Config.Theme.Link;
             block.Tag = url;
 
             block.PointerPressed += (sender, e) => OpenUrl(((TextBlock)sender).Text);

@@ -371,6 +371,7 @@ namespace WLMClient.Locale
             { "options.newavatar", "New Avatar" },
             { "options.displayname", "Display name" },
             { "options.language", "Language" },
+            { "options.darktheme", "Dark theme" },
             { "options.signedinas", "Signed in as {0}" },
             { "options.username", "Sign in name" },
             { "options.username.hint", "Letters, digits, dots, dashes and underscores" },

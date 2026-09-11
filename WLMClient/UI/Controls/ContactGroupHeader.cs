@@ -79,6 +79,13 @@ namespace WLMClient.UI.Controls
             };
         }
 
+        /// <summary>Repaints the heading for the current theme.</summary>
+        public void ApplyTheme()
+        {
+            arrow.Foreground = Config.Theme.Accent;
+            label.Foreground = Config.Theme.Accent;
+        }
+
         public void SetText(string text)
         {
             label.Text = text;

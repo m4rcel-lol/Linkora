@@ -45,6 +45,8 @@
             <Image x:Name="background" Height="83" VerticalAlignment="Top" UseLayoutRounding="True"
                    RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"
                    Stretch="Fill" StretchDirection="Both"></Image>
+            <Border x:Name="backgroundDimmer" Height="83" VerticalAlignment="Top"
+                    Background="Transparent" IsHitTestVisible="False" />
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150" />
@@ -102,7 +104,7 @@
                                             FontFamily="Segoe UI" IsReadOnly="True" Foreground="#FFA0A0A0"></compat:RichTextBox>
                     </Grid>
 
-                    <Grid Grid.Row="2" Margin="-2 0 17 41" Background="#FFF9F9F9">
+                    <Grid Grid.Row="2" x:Name="composeArea" Margin="-2 0 17 41" Background="#FFF9F9F9">
                         <compat:RichTextBox x:Name="txtSend" Background="#FFF9F9F9" BorderThickness="0"
                                             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
                                             Margin="0 0 0 35" FontSize="13" Padding="2 4 0 0" Foreground="Black"
@@ -131,7 +133,7 @@
                         </Border>
                     </Grid>
 
-                    <Border Grid.Row="2" Margin="-2 0 17 41" BorderThickness="0 1 1 1" BorderBrush="#FFDDDDDD"></Border>
+                    <Border Grid.Row="2" x:Name="composeBorder" Margin="-2 0 17 41" BorderThickness="0 1 1 1" BorderBrush="#FFDDDDDD"></Border>
                     <GridSplitter Grid.Row="2" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#00000000" />
                 </Grid>
 

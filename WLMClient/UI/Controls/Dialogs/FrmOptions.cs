@@ -35,8 +35,9 @@ namespace WLMClient.UI.Controls.Dialogs
         private Button btnCancel;
         private ComboBox cmbLanguage;
         private TextBox txtUsername;
+        private CheckBox chkDarkTheme;
 
-        public FrmOptions() : base(440, 378, Language.Get("options.title"))
+        public FrmOptions() : base(440, 418, Language.Get("options.title"))
         {
             InitializeComponent();
 
@@ -46,7 +47,7 @@ namespace WLMClient.UI.Controls.Dialogs
 
         private void InitializeComponent()
         {
-            AddGroupBox(Language.Get("options.title"), 15, 16, 410, 344);
+            AddGroupBox(Language.Get("options.title"), 15, 16, 410, 384);
 
             // Left column: the picture, framed the way it appears elsewhere, with its button
             // directly beneath. Right column: the fields, each under its own heading.
@@ -117,14 +118,16 @@ namespace WLMClient.UI.Controls.Dialogs
 
             AddLanguagePicker(196, 242);
 
+            AddThemeToggle(196, 288);
+
             btnCancel = CreateButton(Language.Get("dialog.close"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
             btnCancel.Click += btnCancel_Click;
-            Add(btnCancel, 196, 288);
+            Add(btnCancel, 196, 328);
 
             btnSave = CreateButton(Language.Get("dialog.save"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
             btnSave.Click += btnSave_Click;
             btnSave.IsDefault = true;
-            Add(btnSave, 311, 288);
+            Add(btnSave, 311, 328);
         }
 
         /// <summary>
@@ -218,6 +221,42 @@ namespace WLMClient.UI.Controls.Dialogs
             cmbLanguage.SelectionChanged += LanguageChanged;
 
             Add(cmbLanguage, left, top);
+        }
+
+        /// <summary>The dark theme switch. Applies at once so the effect is visible while choosing.</summary>
+        private void AddThemeToggle(double left, double top)
+        {
+            chkDarkTheme = new CheckBox
+            {
+                Content = Language.Get("options.darktheme"),
+                IsChecked = Config.Theme.IsDark,
+                FontFamily = new FontFamily("Segoe UI, Helvetica, Arial"),
+                FontSize = 11 * PointToPixel,
+                Foreground = Config.Theme.TextPrimary
+            };
+
+            chkDarkTheme.IsCheckedChanged += ThemeChanged;
+
+            Add(chkDarkTheme, left, top);
+        }
+
+        private void ThemeChanged(object sender, RoutedEventArgs e)
+        {
+            bool dark = chkDarkTheme.IsChecked == true;
+
+            if (dark == Config.Theme.IsDark)
+            {
+                return;
+            }
+
+            SaveData configuration = SaveDataManager.GetConfiguration();
+            configuration.darkTheme = dark;
+
+            SaveDataManager.SaveConfiguration(configuration);
+
+            // Applies to every open window immediately; this dialog keeps the colours it was
+            // built with until it is reopened.
+            Config.Theme.Load(dark);
         }
 
         private void LanguageChanged(object sender, SelectionChangedEventArgs e)

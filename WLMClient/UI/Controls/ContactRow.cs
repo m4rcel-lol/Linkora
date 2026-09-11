@@ -132,6 +132,13 @@ namespace WLMClient.UI.Controls
             Child = layout;
         }
 
+        /// <summary>Repaints the text for the current theme.</summary>
+        public void ApplyTheme()
+        {
+            nameBlock.Foreground = Config.Theme.TextPrimary;
+            secondBlock.Foreground = Config.Theme.TextSecondary;
+        }
+
         /// <summary>Applies a contact's details to the row.</summary>
         public void Update(UserInfo contact)
         {

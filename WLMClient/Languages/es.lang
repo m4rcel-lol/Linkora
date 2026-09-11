@@ -95,3 +95,4 @@ options.username.taken = Otra persona ya usa ese nombre. Prueba con otro.
 options.username.invalid = Puede tener hasta 29 caracteres y usar letras, números, puntos, guiones y guiones bajos.
 options.username.error = El servidor no pudo cambiar tu nombre de inicio de sesión. No se ha cambiado nada.
 options.username.changed = Ahora inicias sesión como {0}.
+options.darktheme = Tema oscuro

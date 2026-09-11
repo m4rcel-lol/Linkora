@@ -45,8 +45,11 @@ namespace WLMClient.UI.Windows
             Config.Properties.SERVER_PORT = Convert.ToInt32(ConfigurationManager.AppSettings["server_port"] ?? "1323");
             Config.Properties.REGISTRATION_URL = (ConfigurationManager.AppSettings["registration_url"] ?? "").Trim();
 
-            // The saved language has to be in place before any window builds its text.
-            Locale.Language.Load(Config.SaveDataManager.GetConfiguration().language);
+            // Language and theme have to be in place before any window builds itself.
+            Config.SaveData settings = Config.SaveDataManager.GetConfiguration();
+
+            Locale.Language.Load(settings.language);
+            Config.Theme.Load(settings.darkTheme);
 
             InitializeComponent();
 

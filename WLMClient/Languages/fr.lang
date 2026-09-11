@@ -95,3 +95,4 @@ options.username.taken = Quelqu'un utilise déjà ce nom. Essayez-en un autre.
 options.username.invalid = Un nom de connexion peut compter jusqu'à 29 caractères et utiliser lettres, chiffres, points, tirets et traits de soulignement.
 options.username.error = Le serveur n'a pas pu changer votre nom de connexion. Rien n'a été modifié.
 options.username.changed = Vous vous connectez désormais en tant que {0}.
+options.darktheme = Thème sombre

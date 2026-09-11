@@ -23,6 +23,9 @@ namespace WLMClient.Config
         /// <summary>Interface language code, empty to follow the operating system.</summary>
         public string language { get; set; }
 
+        /// <summary>Whether the dark theme is in use.</summary>
+        public bool darkTheme { get; set; }
+
         public SaveData(bool rememberId, bool rememberPassword, bool autoLogin,
             string saveId, string savePass)
             : this(rememberId, rememberPassword, autoLogin, saveId, savePass, "")

@@ -45,8 +45,16 @@ namespace WLMClient.UI.Controls
             txtSignUp.PointerPressed += txtSignUp_PointerPressed;
 
             ApplyLanguage();
+            ApplyTheme();
+
             Language.Changed += ApplyLanguage;
-            DetachedFromVisualTree += (sender, e) => Language.Changed -= ApplyLanguage;
+            Config.Theme.Changed += ApplyTheme;
+
+            DetachedFromVisualTree += (sender, e) =>
+            {
+                Language.Changed -= ApplyLanguage;
+                Config.Theme.Changed -= ApplyTheme;
+            };
 
             imagePartnerAvatar.Source = Layout.LoadResource.GetDefaultAvatarImage();
             imagePartnerFrame.Source = Layout.LoadResource.GetAvatarFrameFromStatus(UserStatus.Offline, AvatarSize.Big);
@@ -88,6 +96,22 @@ namespace WLMClient.UI.Controls
             }
         }
 
+
+        /// <summary>Repaints the sign in page for the current theme.</summary>
+        private void ApplyTheme()
+        {
+            backgroundDimmer.Background = Config.Theme.ArtworkDimmer;
+            footerArea.Background = Config.Theme.FooterBackground;
+            loginBox.BorderBrush = Config.Theme.Separator;
+
+            txtSignInTitle.Foreground = Config.Theme.Accent;
+            txtSignInPrompt.Foreground = Config.Theme.TextPrimary;
+            txtSignUp.Foreground = Config.Theme.Accent;
+
+            checkRememberMe.Foreground = Config.Theme.TextPrimary;
+            checkRememberMyPassword.Foreground = Config.Theme.TextPrimary;
+            checkSignInAutomatically.Foreground = Config.Theme.TextPrimary;
+        }
 
         /// <summary>Applies the current language to the sign in page.</summary>
         private void ApplyLanguage()

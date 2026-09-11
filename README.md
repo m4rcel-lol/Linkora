@@ -11,6 +11,7 @@ A Windows Live Messenger style instant messenger, running on **macOS**, **Linux*
 + File attachments in chat
 + Avatars / profile pictures shown in the contact list
 + Interface in your own language
++ Light and dark themes
 + Quick Message
 + Emoticons
 + Web Registration
@@ -297,6 +298,18 @@ containing a bracket or a comma would corrupt every list referring to it. If the
 taken the server refuses and nothing changes.
 
 Saved sign in details are updated to the new name, so "Remember me" keeps working.
+
+---
+
+# Dark theme
+
+**Options → Dark theme** switches between the light and dark looks. It applies immediately to
+every open window and is remembered.
+
+The photographic header artwork is a fixed bitmap rather than something that can be recoloured,
+so in the dark theme it is toned down with an overlay instead. The avatar frames and the
+notification popup keep their own colours in both themes, since those carry the application's
+identity.
 
 ---
 
