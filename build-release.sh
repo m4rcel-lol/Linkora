@@ -12,7 +12,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-DEFAULT_RIDS=(osx-arm64 osx-x64 linux-x64 linux-arm64)
+DEFAULT_RIDS=(osx-arm64 osx-x64 linux-x64 linux-arm64 portable)
 RIDS=("${@:-}")
 
 if [ -z "${RIDS[0]:-}" ]; then
@@ -48,6 +48,20 @@ publish() {
         --configuration Release \
         --runtime "$rid" \
         --self-contained true \
+        -p:DebugType=none \
+        -p:DebugSymbols=false \
+        --output "$out" \
+        --nologo --verbosity quiet
+}
+
+# One build that runs on macOS, Linux and Windows alike. There is no such thing as a single
+# native executable for several operating systems, so this is framework-dependent: it needs the
+# .NET runtime installed on the target and is started with "dotnet WLMServer.dll".
+publish_portable() {
+    local project="$1" out="$2"
+
+    dotnet publish "$project" \
+        --configuration Release \
         -p:DebugType=none \
         -p:DebugSymbols=false \
         --output "$out" \
@@ -95,6 +109,35 @@ for rid in "${RIDS[@]}"; do
 
     target="$DIST/$rid"
     mkdir -p "$target"
+
+    if [ "$rid" = "portable" ]; then
+        echo "    server (portable)..."
+        publish_portable WLMServer/WLMServer.csproj "$target/server"
+
+        cat > "$target/README-portable.txt" <<'TXT'
+One server build for every platform.
+
+This is the same server as the per-platform folders, but it is not tied to an
+operating system: the same files run on macOS, Linux and Windows. It needs the
+.NET 8 runtime (or newer) installed, which the self-contained builds do not.
+
+    Install the runtime:  https://dotnet.microsoft.com/download
+    Start the server:     dotnet WLMServer.dll
+
+Edit Messenger.config next to WLMServer.dll first.
+
+On Linux the runtime also needs OpenSSL for the MySQL connection:
+
+    Debian/Ubuntu:  sudo apt install libssl3
+    Fedora:         sudo dnf install openssl-libs
+
+A single running server already serves macOS, Linux and Windows clients at the
+same time - they all speak the same protocol, so you never need more than one.
+TXT
+
+        echo "    done: $target"
+        continue
+    fi
 
     echo "    server..."
     publish WLMServer/WLMServer.csproj "$rid" "$target/server"

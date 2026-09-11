@@ -63,6 +63,14 @@
                     </Grid>
 
                     <Grid Grid.Column="2">
+                        <TextBlock x:Name="txtConnectedTo" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                   Margin="0 11 8 0" FontSize="11" FontFamily="Segoe UI" FontWeight="Normal"
+                                   Foreground="#FFF2F8FF" TextTrimming="CharacterEllipsis"
+                                   ToolTip.Tip="The Linkora server you are signed in to">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" OffsetX="0.17" OffsetY="0.98" Color="Black" Opacity="1" />
+                            </TextBlock.Effect>
+                        </TextBlock>
                         <Image x:Name="btnArrowStatus" Width="7" Height="3" VerticalAlignment="Top" Cursor="Hand"
                                Margin="8 23 0 0" HorizontalAlignment="Left"
                                Source="avares://WLMClient/Content/Interface/arrow.png"

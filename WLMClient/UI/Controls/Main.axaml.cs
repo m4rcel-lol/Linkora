@@ -185,6 +185,7 @@ namespace WLMClient.UI.Controls
         {
             txtName.Text = Personal.USER_INFO.name;
             txtStatus.Text = "(" + ((UserStatus)Personal.USER_INFO.status).ToString() + ")";
+            txtConnectedTo.Text = "Connected to " + Config.Properties.GetServerDisplay();
 
             if (Personal.USER_INFO.comment.Length != 0)
             {

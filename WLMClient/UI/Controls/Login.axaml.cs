@@ -57,6 +57,10 @@ namespace WLMClient.UI.Controls
 
             loginConfiguration = SaveDataManager.GetConfiguration();
 
+            txtServer.Text = string.IsNullOrWhiteSpace(loginConfiguration.saveServer)
+                ? Config.Properties.FormatServer(Config.Properties.SERVER_ADDRESS, Config.Properties.SERVER_PORT)
+                : loginConfiguration.saveServer;
+
             if (loginConfiguration.rememberId)
             {
                 txtId.Text = loginConfiguration.saveId;
@@ -123,6 +127,27 @@ namespace WLMClient.UI.Controls
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
+            string host;
+            int port;
+
+            if (!TryParseServer(txtServer.Text, out host, out port))
+            {
+                MessageBox.Show(
+                    "Enter the address of the Linkora server you want to sign in to.\n\n" +
+                    "For example 127.0.0.1, chat.example.com, or chat.example.com:1323.",
+                    "Server address needed", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                txtServer.Focus();
+
+                return;
+            }
+
+            Config.Properties.SERVER_ADDRESS = host;
+            Config.Properties.SERVER_PORT = port;
+            Config.Properties.SERVER_DISPLAY = Config.Properties.FormatServer(host, port);
+
+            loginConfiguration.saveServer = txtServer.Text.Trim();
+
             if (checkRememberMe.IsChecked.Value & !checkRememberMyPassword.IsChecked.Value)
             {
                 loginConfiguration.saveId = txtId.Text;
@@ -137,8 +162,61 @@ namespace WLMClient.UI.Controls
 
             SaveDataManager.SaveConfiguration(loginConfiguration);
 
-            Network.Client.Connect();
+            if (!Network.Client.Connect())
+            {
+                return;
+            }
+
             Network.Client.AuthenticateUser(txtId.Text ?? "", txtPass.Password, Convert.ToInt16(selectedUserStatus));
+        }
+
+        /// <summary>
+        /// Accepts "host", "host:port" and a pasted "wlm://host:port" style address. The port falls
+        /// back to whatever the configuration file specifies.
+        /// </summary>
+        private static bool TryParseServer(string text, out string host, out int port)
+        {
+            host = null;
+            port = Config.Properties.SERVER_PORT > 0 ? Config.Properties.SERVER_PORT : Config.Properties.DEFAULT_PORT;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            text = text.Trim();
+
+            int scheme = text.IndexOf("://", StringComparison.Ordinal);
+
+            if (scheme >= 0)
+            {
+                text = text.Substring(scheme + 3);
+            }
+
+            text = text.Trim('/');
+
+            // A single colon separates host and port; more than one means a bare IPv6 address,
+            // which is passed through untouched.
+            int colon = text.IndexOf(':');
+
+            if (colon > 0 && colon == text.LastIndexOf(':'))
+            {
+                int parsed;
+
+                if (int.TryParse(text.Substring(colon + 1), out parsed) && parsed > 0 && parsed <= 65535)
+                {
+                    host = text.Substring(0, colon).Trim();
+                    port = parsed;
+
+                    return host.Length > 0;
+                }
+
+                return false;
+            }
+
+            host = text;
+
+            return host.Length > 0;
         }
 
         /// <summary>Opens the registration page in the user's browser.</summary>

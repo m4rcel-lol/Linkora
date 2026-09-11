@@ -112,7 +112,11 @@ people register themselves through the web page described below.
 
 ## 3. Client
 
-Open `Messenger.config` next to the client and point it at your server:
+The sign in page has a **server address** box: type the address of whichever Linkora server you
+want to use (`127.0.0.1`, `chat.example.com`, or `chat.example.com:1323` to override the port).
+It is remembered between sessions, so most people only ever set it once.
+
+`Messenger.config` next to the client supplies the value the box starts out with:
 
 ```xml
 <appSettings>
@@ -162,16 +166,36 @@ dotnet run --project WLMServer                  # the server
 dotnet run --project WLMClient                  # the client
 ```
 
-### Producing self-contained releases
-
-`build-release.sh` publishes binaries that run without .NET installed:
+### Producing releases
 
 ```bash
-./build-release.sh                   # osx-arm64, osx-x64, linux-x64, linux-arm64
+./build-release.sh                   # every target below
 ./build-release.sh linux-x64         # a single target
+./build-release.sh portable          # just the portable server
 ```
 
-Output lands in `dist/<runtime>/`, with macOS builds packaged as a `.app` bundle.
+Output lands in `dist/<target>/`, with macOS builds packaged as a `.app` bundle.
+
+| Target                                      | What you get                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `osx-arm64`, `osx-x64`, `linux-x64`, `linux-arm64` | Self-contained client and server. No .NET needed, ~180 MB each. |
+| `portable`                                  | **One server build for every platform.** ~13 MB, needs the .NET 8 runtime installed. |
+
+### One server for macOS and Linux
+
+There is no such thing as a single *native* executable for two operating systems — macOS uses
+Mach-O binaries and Linux uses ELF, which is why the self-contained builds are per-platform.
+
+What you can have is one **portable** build. `dist/portable/server` holds the same files for every
+platform; install the [.NET 8 runtime](https://dotnet.microsoft.com/download) and run:
+
+```bash
+dotnet WLMServer.dll
+```
+
+Worth knowing either way: **a single running server already serves macOS, Linux and Windows
+clients at the same time.** They all speak the same protocol, so you never need more than one
+server no matter what your users run.
 
 ### Running the macOS build
 

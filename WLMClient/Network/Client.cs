@@ -53,7 +53,11 @@ namespace WLMClient.Network
             NetworkComms.DefaultSendReceiveOptions.DataProcessors.Add(DPSManager.GetDataProcessor<RijndaelPSKEncrypter>());
         }
 
-        public static void Connect()
+        /// <summary>
+        /// Prepares a connection to the configured server. Returns false when the address cannot be
+        /// resolved, which is a normal mistake now that the user types it on the sign in page.
+        /// </summary>
+        public static bool Connect()
         {
             ((ConnectionClosed)connectionedClosed).Close();
 
@@ -64,18 +68,29 @@ namespace WLMClient.Network
             try
             {
                 connectionInfo = new ConnectionInfo(Config.Properties.SERVER_ADDRESS, Config.Properties.SERVER_PORT);
+
+                return true;
             }
             catch
             {
-                // Without a usable address there is nothing to connect to, so close once the user
-                // has acknowledged the message.
-                MessageBox.ShowThen("Server configuration is wrong.", "", MessageBoxImage.Error,
-                    () => Environment.Exit(0));
+                connectionInfo = null;
+
+                MessageBox.Show(
+                    "'" + Config.Properties.SERVER_ADDRESS + "' could not be found.\n\n" +
+                    "Check the server address on the sign in page.",
+                    "Unable to reach that server", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                return false;
             }
         }
 
         public static void SendPacket(string packetType, object packetData)
         {
+            if (connectionInfo == null)
+            {
+                return;
+            }
+
             try
             {
                 TCPConnection.GetConnection(connectionInfo).SendObject(packetType, packetData);
