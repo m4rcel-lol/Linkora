@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -21,6 +22,15 @@ namespace WLMClient.UI.Controls.Dialogs
 
         protected Canvas Root { get; private set; }
 
+        /// <summary>Labels that follow the theme's primary text colour.</summary>
+        private readonly List<TextBlock> themedLabels = new List<TextBlock>();
+
+        /// <summary>Buttons whose colours came from the theme rather than being chosen outright.</summary>
+        private readonly List<Button> themedButtons = new List<Button>();
+        private readonly List<Button> strongButtons = new List<Button>();
+
+        private readonly List<Border> themedBoxes = new List<Border>();
+
         protected DialogWindow(int clientWidth, int clientHeight, string title)
         {
             Title = title;
@@ -40,6 +50,51 @@ namespace WLMClient.UI.Controls.Dialogs
             };
 
             Content = Root;
+
+            Config.Theme.Changed += ApplyTheme;
+            Closed += (sender, e) => Config.Theme.Changed -= ApplyTheme;
+        }
+
+        /// <summary>
+        /// Repaints the dialog for the current theme. Without this a dialog left open while the
+        /// theme is switched keeps the colours it was built with, which in practice meant dark
+        /// text on a dark background.
+        /// </summary>
+        protected virtual void ApplyTheme()
+        {
+            Background = Config.Theme.DialogBackground;
+            Root.Background = Config.Theme.DialogBackground;
+
+            foreach (TextBlock label in themedLabels)
+            {
+                label.Foreground = Config.Theme.TextPrimary;
+                label.Background = Config.Theme.DialogBackground;
+            }
+
+            foreach (Border box in themedBoxes)
+            {
+                box.BorderBrush = Config.Theme.Separator;
+            }
+
+            foreach (Button button in themedButtons)
+            {
+                button.BorderBrush = Config.Theme.Separator;
+                button.Background = Config.Theme.ButtonBackground;
+                button.Foreground = Config.Theme.TextPrimary;
+            }
+
+            foreach (Button button in strongButtons)
+            {
+                button.BorderBrush = Config.Theme.Separator;
+                button.Background = Config.Theme.ButtonStrongBackground;
+                button.Foreground = Config.Theme.ButtonStrongForeground;
+            }
+        }
+
+        /// <summary>Registers a label so it follows the theme's text colour.</summary>
+        protected void TrackLabel(TextBlock label)
+        {
+            themedLabels.Add(label);
         }
 
         protected static void Place(Control control, double left, double top)
@@ -65,6 +120,8 @@ namespace WLMClient.UI.Controls.Dialogs
                 BorderThickness = new Thickness(1)
             };
 
+            themedBoxes.Add(box);
+
             Add(box, left, top);
 
             TextBlock headerText = new TextBlock
@@ -80,7 +137,22 @@ namespace WLMClient.UI.Controls.Dialogs
                 Padding = new Thickness(4, 0, 4, 0)
             };
 
+            themedLabels.Add(headerText);
+
             Add(headerText, left + 6, top - 11);
+        }
+
+        /// <summary>
+        /// A label in the theme's own text colour, which is kept up to date when the theme changes.
+        /// Use the overload taking a brush for text that has a colour of its own.
+        /// </summary>
+        protected TextBlock CreateLabel(string text, string fontFamily, double pointSize)
+        {
+            TextBlock label = CreateLabel(text, fontFamily, pointSize, Config.Theme.TextPrimary);
+
+            TrackLabel(label);
+
+            return label;
         }
 
         protected static TextBlock CreateLabel(string text, string fontFamily, double pointSize, IBrush foreground)
@@ -127,7 +199,29 @@ namespace WLMClient.UI.Controls.Dialogs
             return measured.Width;
         }
 
-        protected static Button CreateButton(string text, double width, double height, IBrush background, IBrush foreground)
+        /// <summary>An ordinary dialog button, following the theme.</summary>
+        protected Button CreateButton(string text, double width, double height)
+        {
+            Button button = BuildButton(text, width, height,
+                Config.Theme.ButtonBackground, Config.Theme.TextPrimary);
+
+            themedButtons.Add(button);
+
+            return button;
+        }
+
+        /// <summary>The emphasised button the designer file drew in black.</summary>
+        protected Button CreateStrongButton(string text, double width, double height)
+        {
+            Button button = BuildButton(text, width, height,
+                Config.Theme.ButtonStrongBackground, Config.Theme.ButtonStrongForeground);
+
+            strongButtons.Add(button);
+
+            return button;
+        }
+
+        private static Button BuildButton(string text, double width, double height, IBrush background, IBrush foreground)
         {
             return new Button
             {

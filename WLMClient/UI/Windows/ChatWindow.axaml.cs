@@ -353,6 +353,12 @@ namespace WLMClient.UI.Windows
 
             composeArea.Background = Config.Theme.ComposeBackground;
             composeBorder.BorderBrush = Config.Theme.Separator;
+            composeEdge.Background = Config.Theme.Separator;
+
+            // The tail artwork is light, so the dark theme paints the shape itself instead.
+            composeTail.IsVisible = !Config.Theme.IsDark;
+            composeTailDark.IsVisible = Config.Theme.IsDark;
+            composeTailDark.Background = Config.Theme.ComposeBackground;
 
             txtSend.Background = Config.Theme.ComposeBackground;
             txtSend.Foreground = Config.Theme.ChatText;

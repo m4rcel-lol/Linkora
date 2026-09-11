@@ -36,6 +36,8 @@ namespace WLMClient.UI.Controls.Dialogs
         private ComboBox cmbLanguage;
         private TextBox txtUsername;
         private CheckBox chkDarkTheme;
+        private TextBlock avatarHeading;
+        private TextBlock usernameHint;
 
         public FrmOptions() : base(440, 418, Language.Get("options.title"))
         {
@@ -51,20 +53,20 @@ namespace WLMClient.UI.Controls.Dialogs
 
             // Left column: the picture, framed the way it appears elsewhere, with its button
             // directly beneath. Right column: the fields, each under its own heading.
-            TextBlock avatarHeading = CreateLabel(Language.Get("options.newavatar"),
-                "Segoe UI, Helvetica, Arial", 14.25, new SolidColorBrush(Color.FromRgb(0x1E, 0x90, 0xFF)));
+            avatarHeading = CreateLabel(Language.Get("options.newavatar"),
+                "Segoe UI, Helvetica, Arial", 14.25, Config.Theme.Accent);
             CapWidth(avatarHeading, 140);
             Add(avatarHeading, 34, 42);
 
             AddAvatarPreview(34, 72);
 
-            btnBrowse = CreateButton(Language.Get("dialog.browse"), 140, 28, Brushes.Black, Brushes.White);
+            btnBrowse = CreateStrongButton(Language.Get("dialog.browse"), 140, 28);
             btnBrowse.FontSize = 11 * PointToPixel;
             btnBrowse.Click += btnBrowse_Click;
             Add(btnBrowse, 34, 210);
 
             TextBlock nameHeading = CreateLabel(Language.Get("options.displayname"),
-                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+                "Segoe UI, Helvetica, Arial", 14.25);
             CapWidth(nameHeading, 220);
             Add(nameHeading, 196, 42);
 
@@ -84,7 +86,7 @@ namespace WLMClient.UI.Controls.Dialogs
             Add(txtName, 196, 72);
 
             TextBlock usernameHeading = CreateLabel(Language.Get("options.username"),
-                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+                "Segoe UI, Helvetica, Arial", 14.25);
             CapWidth(usernameHeading, 220);
             Add(usernameHeading, 196, 116);
 
@@ -105,14 +107,14 @@ namespace WLMClient.UI.Controls.Dialogs
 
             Add(txtUsername, 196, 146);
 
-            TextBlock usernameHint = CreateLabel(Language.Get("options.username.hint"),
-                "Segoe UI, Helvetica, Arial", 8.5, new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)));
+            usernameHint = CreateLabel(Language.Get("options.username.hint"),
+                "Segoe UI, Helvetica, Arial", 8.5, Config.Theme.TextSecondary);
             usernameHint.TextWrapping = TextWrapping.Wrap;
             usernameHint.MaxWidth = 220;
             Add(usernameHint, 196, 178);
 
             TextBlock languageHeading = CreateLabel(Language.Get("options.language"),
-                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+                "Segoe UI, Helvetica, Arial", 14.25);
             CapWidth(languageHeading, 220);
             Add(languageHeading, 196, 212);
 
@@ -120,11 +122,11 @@ namespace WLMClient.UI.Controls.Dialogs
 
             AddThemeToggle(196, 288);
 
-            btnCancel = CreateButton(Language.Get("dialog.close"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
+            btnCancel = CreateButton(Language.Get("dialog.close"), 105, 30);
             btnCancel.Click += btnCancel_Click;
             Add(btnCancel, 196, 328);
 
-            btnSave = CreateButton(Language.Get("dialog.save"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
+            btnSave = CreateButton(Language.Get("dialog.save"), 105, 30);
             btnSave.Click += btnSave_Click;
             btnSave.IsDefault = true;
             Add(btnSave, 311, 328);
@@ -221,6 +223,27 @@ namespace WLMClient.UI.Controls.Dialogs
             cmbLanguage.SelectionChanged += LanguageChanged;
 
             Add(cmbLanguage, left, top);
+        }
+
+        /// <summary>Repaints the pieces of this dialog that have colours of their own.</summary>
+        protected override void ApplyTheme()
+        {
+            base.ApplyTheme();
+
+            if (avatarHeading != null)
+            {
+                avatarHeading.Foreground = Config.Theme.Accent;
+            }
+
+            if (usernameHint != null)
+            {
+                usernameHint.Foreground = Config.Theme.TextSecondary;
+            }
+
+            if (chkDarkTheme != null)
+            {
+                chkDarkTheme.Foreground = Config.Theme.TextPrimary;
+            }
         }
 
         /// <summary>The dark theme switch. Applies at once so the effect is visible while choosing.</summary>

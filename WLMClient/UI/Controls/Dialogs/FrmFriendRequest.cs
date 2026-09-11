@@ -77,14 +77,14 @@ namespace WLMClient.UI.Controls.Dialogs
 
             Add(avatarBorder, 21, 37);
 
-            lblText = CreateLabel("label1", "Times New Roman, Times, serif", 12, Brushes.Black);
+            lblText = CreateLabel("label1", "Times New Roman, Times, serif", 12);
             Add(lblText, 129, 39);
 
-            btnYes = CreateButton(Language.Get("dialog.yes"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnYes = CreateButton(Language.Get("dialog.yes"), 110, 31);
             btnYes.Click += btnYes_Click;
             Add(btnYes, 357, 150);
 
-            btnNo = CreateButton(Language.Get("dialog.no"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnNo = CreateButton(Language.Get("dialog.no"), 110, 31);
             btnNo.Click += btnNo_Click;
             Add(btnNo, 473, 150);
         }

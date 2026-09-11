@@ -91,6 +91,14 @@ namespace WLMClient.Config
         /// <summary>Links inside messages.</summary>
         public static IBrush Link { get { return Pick(0xFF0000FF, 0xFF7FB3E8); } }
 
+        /// <summary>Face of the ordinary dialog buttons.</summary>
+        public static IBrush ButtonBackground { get { return Pick(0xFFF5F5F5, 0xFF34373D); } }
+
+        /// <summary>The emphasised button, which the designer file drew in black.</summary>
+        public static IBrush ButtonStrongBackground { get { return Pick(0xFF000000, 0xFF4A4F59); } }
+
+        public static IBrush ButtonStrongForeground { get { return Brushes.White; } }
+
         #endregion
 
         #region Contact rows

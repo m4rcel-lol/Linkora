@@ -109,12 +109,22 @@
                                             HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
                                             Margin="0 0 0 35" FontSize="13" Padding="2 4 0 0" Foreground="Black"
                                             AcceptsReturn="True"></compat:RichTextBox>
-                        <Image Width="1" Margin="-1 0 0 0" HorizontalAlignment="Left" Stretch="Fill"
-                               Source="avares://WLMClient/Content/Interface/chatWindowSideBar.png"></Image>
-                        <Image UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="None"
+                        <Border x:Name="composeEdge" Width="1" Margin="-1 0 0 0" HorizontalAlignment="Left" />
+
+                        <!-- The bubble's tail. The artwork is a light bitmap, so in the dark theme
+                             the same silhouette is painted through it as an opacity mask instead. -->
+                        <Image x:Name="composeTail" UseLayoutRounding="True"
+                               RenderOptions.BitmapInterpolationMode="None"
                                RenderOptions.EdgeMode="Aliased" Stretch="Fill" HorizontalAlignment="Left"
                                VerticalAlignment="Bottom" Margin="-13 0 0 0" StretchDirection="Both" Width="13" Height="44"
                                Source="avares://WLMClient/Content/Interface/chatWindowTriangle.png" />
+                        <Border x:Name="composeTailDark" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                Margin="-13 0 0 0" Width="13" Height="44" IsVisible="False">
+                            <Border.OpacityMask>
+                                <ImageBrush Source="avares://WLMClient/Content/Interface/chatWindowTriangle.png"
+                                            Stretch="Fill" />
+                            </Border.OpacityMask>
+                        </Border>
                         <Image x:Name="btnSmiley" Margin="5 0 0 6" ToolTip.Tip="Smilies" Width="36" Height="25"
                                HorizontalAlignment="Left" VerticalAlignment="Bottom" UseLayoutRounding="True"
                                RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"

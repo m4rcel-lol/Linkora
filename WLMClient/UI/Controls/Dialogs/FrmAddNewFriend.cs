@@ -35,7 +35,7 @@ namespace WLMClient.UI.Controls.Dialogs
         {
             AddGroupBox(Language.Get("addfriend.title"), 15, 14, 579, 192);
 
-            lblText = CreateLabel(Language.Get("addfriend.prompt"), "Times New Roman, Times, serif", 12, Brushes.Black);
+            lblText = CreateLabel(Language.Get("addfriend.prompt"), "Times New Roman, Times, serif", 12);
             Add(lblText, 32, 53);
 
             txtName = new TextBox
@@ -53,7 +53,7 @@ namespace WLMClient.UI.Controls.Dialogs
             txtName.KeyUp += txtName_KeyUp;
             Add(txtName, 36, 162);
 
-            btnSubmit = CreateButton(Language.Get("dialog.ok"), 110, 31, Brushes.WhiteSmoke, Brushes.Black);
+            btnSubmit = CreateButton(Language.Get("dialog.ok"), 110, 31);
             btnSubmit.Click += btnSubmit_Click;
             btnSubmit.IsDefault = true;
             Add(btnSubmit, 469, 160);
