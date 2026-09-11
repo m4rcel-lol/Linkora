@@ -130,7 +130,7 @@ namespace WLMClient.UI.Controls
             string host;
             int port;
 
-            if (!TryParseServer(txtServer.Text, out host, out port))
+            if (!Config.Properties.TryParseServer(txtServer.Text, out host, out port))
             {
                 MessageBox.Show(
                     "Enter the address of the Linkora server you want to sign in to.\n\n" +
@@ -170,66 +170,21 @@ namespace WLMClient.UI.Controls
             Network.Client.AuthenticateUser(txtId.Text ?? "", txtPass.Password, Convert.ToInt16(selectedUserStatus));
         }
 
-        /// <summary>
-        /// Accepts "host", "host:port" and a pasted "wlm://host:port" style address. The port falls
-        /// back to whatever the configuration file specifies.
-        /// </summary>
-        private static bool TryParseServer(string text, out string host, out int port)
-        {
-            host = null;
-            port = Config.Properties.SERVER_PORT > 0 ? Config.Properties.SERVER_PORT : Config.Properties.DEFAULT_PORT;
-
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            text = text.Trim();
-
-            int scheme = text.IndexOf("://", StringComparison.Ordinal);
-
-            if (scheme >= 0)
-            {
-                text = text.Substring(scheme + 3);
-            }
-
-            text = text.Trim('/');
-
-            // A single colon separates host and port; more than one means a bare IPv6 address,
-            // which is passed through untouched.
-            int colon = text.IndexOf(':');
-
-            if (colon > 0 && colon == text.LastIndexOf(':'))
-            {
-                int parsed;
-
-                if (int.TryParse(text.Substring(colon + 1), out parsed) && parsed > 0 && parsed <= 65535)
-                {
-                    host = text.Substring(0, colon).Trim();
-                    port = parsed;
-
-                    return host.Length > 0;
-                }
-
-                return false;
-            }
-
-            host = text;
-
-            return host.Length > 0;
-        }
 
         /// <summary>Opens the registration page in the user's browser.</summary>
         private void txtSignUp_PointerPressed(object sender, PointerPressedEventArgs e)
         {
-            string url = Config.Properties.REGISTRATION_URL;
+            // Follows whatever server is in the box, so the link points at the right place
+            // before the user has signed in anywhere.
+            string url = Config.Properties.GetRegistrationUrl(txtServer.Text);
 
             if (string.IsNullOrWhiteSpace(url))
             {
                 MessageBox.Show(
-                    "No sign up page has been set up for this server.\n\n" +
-                    "Ask whoever runs it for the address, or set 'registration_url' in Messenger.config.",
-                    "Sign up unavailable", MessageBoxButton.OK, MessageBoxImage.Information);
+                    "Enter the address of the server you want to sign up on first.",
+                    "Server address needed", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                txtServer.Focus();
 
                 return;
             }

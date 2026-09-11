@@ -130,7 +130,7 @@ It is remembered between sessions, so most people only ever set it once.
 | ------------------ | ------------------------------------------------------------------------------------------------- |
 | server_address     | *Hostname or IP of your server.*                                                                  |
 | server_port        | *Must match the server's `server_port`.*                                                          |
-| registration_url   | *Where the "Sign up." link on the sign in page goes, e.g. `http://your-server/index.php`. Leave empty if you have no registration page; the link then explains that none is set up.* |
+| registration_url   | *Optional. Overrides where the "Sign up." link goes. Leave empty and it uses `http://<server address>/`, taken from the box on the sign in page.* |
 
 On macOS that file lives inside the bundle, at
 `Linkora.app/Contents/MacOS/Messenger.config`.
@@ -280,7 +280,13 @@ or extra storage is involved.
 A small PHP page that lets people register accounts themselves and upload avatars.
 
 Copy the `Registration Page` folder to your webserver and make `uploads/` writable if you intend
-to use avatars. Open `config.php` and fill in the database details:
+to use avatars.
+
+The **"Sign up."** link on the sign in page follows whatever server address the user has typed:
+with `chat.example.com` in the box it opens `http://chat.example.com/`. So if you serve this
+folder from the web root of the machine running the server, the link works with no configuration
+at all. Set `registration_url` in the client's `Messenger.config` only when the page lives
+somewhere else, such as a different host, a subdirectory or HTTPS. Open `config.php` and fill in the database details:
 
 ```php
 <?php
