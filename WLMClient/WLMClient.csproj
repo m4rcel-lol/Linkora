@@ -5,6 +5,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>WLMClient</RootNamespace>
     <Version>1.1.0</Version>
+    <!-- Otherwise the SDK appends the git commit to InformationalVersion, which is not something
+         to show a user at the foot of the window. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <AssemblyName>WLMClient</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>

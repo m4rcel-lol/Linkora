@@ -59,7 +59,17 @@ namespace WLMClient.Config
 
                 if (suffix.StartsWith(BuildPrefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    return baseVersion + " (build " + suffix.Substring(BuildPrefix.Length) + ")";
+                    string build = suffix.Substring(BuildPrefix.Length);
+
+                    // Anything after the build stamp itself (a commit hash, say) is not useful here.
+                    int separator = build.IndexOf('.');
+
+                    if (separator > 0)
+                    {
+                        build = build.Substring(0, separator);
+                    }
+
+                    return baseVersion + " (build " + build + ")";
                 }
 
                 return baseVersion;
