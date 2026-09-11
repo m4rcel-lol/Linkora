@@ -86,3 +86,5 @@ error.signup.title = Adresse du serveur requise
 notification.signedin = vient de se connecter.
 notification.sentfile = vous a envoyé un fichier.
 notification.sentnudge = Vous a envoyé un wizz !
+main.version = Linkora {0}
+options.signedinas = Connecté en tant que {0}

@@ -16,6 +16,7 @@ using Avalonia.Platform.Storage;
 
 using WLMClient.Compat;
 using WLMClient.Config;
+using WLMClient.Layout;
 using WLMClient.Locale;
 using WLMClient.Network;
 
@@ -34,7 +35,7 @@ namespace WLMClient.UI.Controls.Dialogs
         private Button btnCancel;
         private ComboBox cmbLanguage;
 
-        public FrmOptions() : base(410, 310, Language.Get("options.title"))
+        public FrmOptions() : base(440, 322, Language.Get("options.title"))
         {
             InitializeComponent();
 
@@ -43,81 +44,144 @@ namespace WLMClient.UI.Controls.Dialogs
 
         private void InitializeComponent()
         {
-            AddGroupBox(Language.Get("options.title"), 15, 16, 380, 275);
+            AddGroupBox(Language.Get("options.title"), 15, 16, 410, 288);
 
-            // Headings sit above their fields and are capped to the field width, so a longer
-            // translation shortens with an ellipsis instead of running off the dialog.
-            TextBlock label2 = CreateLabel(Language.Get("options.newavatar"), "Segoe UI, Helvetica, Arial", 14.25,
-                new SolidColorBrush(Color.FromRgb(0x1E, 0x90, 0xFF)));
-            CapWidth(label2, 112);
-            Add(label2, 31, 48);
+            // Left column: the picture, framed the way it appears elsewhere, with its button
+            // directly beneath. Right column: the fields, each under its own heading.
+            TextBlock avatarHeading = CreateLabel(Language.Get("options.newavatar"),
+                "Segoe UI, Helvetica, Arial", 14.25, new SolidColorBrush(Color.FromRgb(0x1E, 0x90, 0xFF)));
+            CapWidth(avatarHeading, 140);
+            Add(avatarHeading, 34, 42);
 
-            TextBlock label3 = CreateLabel(Language.Get("options.displayname"), "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
-            CapWidth(label3, 223);
-            Add(label3, 149, 48);
+            AddAvatarPreview(34, 72);
 
-            Border avatarBorder = new Border
-            {
-                Width = 98,
-                Height = 98,
-                Background = Brushes.White,
-                BorderThickness = new Thickness(1),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(0x82, 0x82, 0x82))
-            };
+            btnBrowse = CreateButton(Language.Get("dialog.browse"), 140, 28, Brushes.Black, Brushes.White);
+            btnBrowse.FontSize = 11 * PointToPixel;
+            btnBrowse.Click += btnBrowse_Click;
+            Add(btnBrowse, 34, 210);
 
-            imgAvatar = new Image { Stretch = Stretch.Uniform };
-            avatarBorder.Child = imgAvatar;
-
-            Add(avatarBorder, 36, 84);
+            TextBlock nameHeading = CreateLabel(Language.Get("options.displayname"),
+                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+            CapWidth(nameHeading, 220);
+            Add(nameHeading, 196, 42);
 
             txtName = new TextBox
             {
-                Width = 223,
-                Height = 26,
+                Width = 220,
+                Height = 28,
                 MaxLength = 22,
                 FontFamily = new FontFamily("Microsoft Sans Serif, Helvetica, Arial"),
                 FontSize = 12 * PointToPixel,
-                TextAlignment = TextAlignment.Center,
                 BorderThickness = new Thickness(1),
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0x9A, 0x9A)),
-                VerticalContentAlignment = VerticalAlignment.Center
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(4, 0, 4, 0)
             };
 
-            Add(txtName, 149, 84);
+            Add(txtName, 196, 72);
 
-            btnBrowse = CreateButton(Language.Get("dialog.browse"), 98, 30, Brushes.Black, Brushes.White);
-            btnBrowse.FontSize = 12 * PointToPixel;
-            btnBrowse.Click += btnBrowse_Click;
-            Add(btnBrowse, 36, 196);
+            TextBlock languageHeading = CreateLabel(Language.Get("options.language"),
+                "Segoe UI, Helvetica, Arial", 14.25, Brushes.Black);
+            CapWidth(languageHeading, 220);
+            Add(languageHeading, 196, 116);
 
-            btnSave = CreateButton(Language.Get("dialog.save"), 94, 51, Brushes.WhiteSmoke, Brushes.Black);
-            btnSave.Click += btnSave_Click;
-            Add(btnSave, 278, 175);
+            AddLanguagePicker(196, 146);
 
-            btnCancel = CreateButton(Language.Get("dialog.close"), 94, 51, Brushes.WhiteSmoke, Brushes.Black);
+            // A quiet reminder of which account these settings belong to.
+            TextBlock account = CreateLabel(
+                Language.Format("options.signedinas", Personal.USER_INFO == null ? "" : Personal.USER_INFO.id),
+                "Segoe UI, Helvetica, Arial", 9, new SolidColorBrush(Color.FromRgb(0x77, 0x77, 0x77)));
+            CapWidth(account, 220);
+            Add(account, 196, 184);
+
+            btnCancel = CreateButton(Language.Get("dialog.close"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
             btnCancel.Click += btnCancel_Click;
-            Add(btnCancel, 149, 175);
+            Add(btnCancel, 196, 210);
 
-            AddLanguagePicker();
+            btnSave = CreateButton(Language.Get("dialog.save"), 105, 30, Brushes.WhiteSmoke, Brushes.Black);
+            btnSave.Click += btnSave_Click;
+            btnSave.IsDefault = true;
+            Add(btnSave, 311, 210);
+        }
+
+        /// <summary>
+        /// Shows the picture currently in use, inside the same frame the rest of the application
+        /// draws around a profile picture. Previously this stayed blank until a new file was picked.
+        /// </summary>
+        private void AddAvatarPreview(double left, double top)
+        {
+            imgAvatar = new Image
+            {
+                Stretch = Stretch.Fill,
+                Width = Resource.Images.Attributes.AVATAR_CHAT_SIZE_WIDTH,
+                Height = Resource.Images.Attributes.AVATAR_CHAT_SIZE_HEIGHT,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            Image frame = new Image
+            {
+                Stretch = Stretch.None,
+                Source = LoadResource.GetAvatarFrameFromStatus(
+                    Personal.USER_INFO == null
+                        ? WLMData.Enums.UserStatus.Offline
+                        : (WLMData.Enums.UserStatus)Personal.USER_INFO.status,
+                    UI.Data.Enums.AvatarSize.Big)
+            };
+
+            Grid framed = new Grid
+            {
+                Width = Resource.Images.Attributes.AVATAR_FRAME_WIDTH,
+                Height = Resource.Images.Attributes.AVATAR_FRAME_HEIGHT
+            };
+
+            framed.Children.Add(imgAvatar);
+            framed.Children.Add(frame);
+
+            Viewbox box = new Viewbox
+            {
+                Width = 140,
+                Stretch = Stretch.Uniform,
+                Child = framed
+            };
+
+            Add(box, left, top);
+
+            ShowCurrentAvatar();
+        }
+
+        /// <summary>Loads the picture the account is currently using into the preview.</summary>
+        private void ShowCurrentAvatar()
+        {
+            imgAvatar.Source = LoadResource.GetDefaultAvatarImage();
+
+            string url = Personal.USER_INFO == null ? "" : Personal.USER_INFO.avatar;
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return;
+            }
+
+            IImage cached = AvatarCache.Get(url, loaded => imgAvatar.Source = loaded);
+
+            if (cached != null)
+            {
+                imgAvatar.Source = cached;
+            }
         }
 
         /// <summary>
         /// The language list. Entries come from the Languages folder, so a language added there
         /// shows up here without rebuilding.
         /// </summary>
-        private void AddLanguagePicker()
+        private void AddLanguagePicker(double left, double top)
         {
-            TextBlock label = CreateLabel(Language.Get("options.language"), "Segoe UI, Helvetica, Arial", 14.25,
-                Brushes.Black);
-            CapWidth(label, 112);
-            Add(label, 31, 238);
-
             List<LanguageInfo> languages = Language.GetAvailable();
 
             cmbLanguage = new ComboBox
             {
-                Width = 223,
-                Height = 26,
+                Width = 220,
+                Height = 28,
                 ItemsSource = languages,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Left,
@@ -130,7 +194,7 @@ namespace WLMClient.UI.Controls.Dialogs
 
             cmbLanguage.SelectionChanged += LanguageChanged;
 
-            Add(cmbLanguage, 149, 238);
+            Add(cmbLanguage, left, top);
         }
 
         private void LanguageChanged(object sender, SelectionChangedEventArgs e)

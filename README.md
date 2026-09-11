@@ -266,10 +266,13 @@ leave `avatars_http_port` at `0`. See the next section.
 
 # The contact list
 
-Each contact shows their profile picture framed in their status colour: green for available, red
-for busy, orange for away, grey for offline. Underneath their name is either their personal
-message, or, when they have not set one, the most recent message exchanged with them. That
-preview covers the current session only, since the application keeps no message history.
+Each contact shows their profile picture inside the same frame the application draws around your
+own picture, which carries their status: green for available, red for busy, orange for away and
+silver for offline. Contacts without a picture get the default one from the sign in page.
+
+Underneath their name is either their personal message, or, when they have not set one, the most
+recent message exchanged with them. That preview covers the current session only, since the
+application keeps no message history.
 
 Right click a contact and choose **Add to Favourites** to pin them. Favourites are listed in
 their own group above everyone else, and both groups can be collapsed by clicking the heading.
@@ -283,6 +286,9 @@ people sharing an installation keep separate lists.
 The interface language is chosen in **Options → Language**. It applies immediately and is
 remembered. Out of the box Linkora speaks English, Spanish, German, French and Polish, and on
 first run it follows the language the operating system is set to.
+
+The version in use is shown at the foot of the window. Release builds add the date they were
+produced, for example `Linkora 1.1.0 (build 20260911)`.
 
 ### Adding your own language
 

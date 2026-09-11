@@ -161,6 +161,9 @@
                        Source="avares://WLMClient/Content/Other/BottomAd.png" Stretch="None" UseLayoutRounding="True"
                        RenderOptions.BitmapInterpolationMode="None" RenderOptions.EdgeMode="Aliased"></Image>
             </Border>
+            <TextBlock x:Name="txtVersion" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Margin="0 0 0 6" FontSize="10" FontFamily="Segoe UI" Foreground="#FF6C8A9C" />
+
             <Grid.Background>
                 <LinearGradientBrush EndPoint="50%,100%" StartPoint="50%,0%">
                     <GradientStop Color="#FFD9EBF4" Offset="0" />

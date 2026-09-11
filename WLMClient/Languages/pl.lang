@@ -86,3 +86,5 @@ error.signup.title = Wymagany adres serwera
 notification.signedin = właśnie się zalogował.
 notification.sentfile = wysłał Ci plik.
 notification.sentnudge = Wysłał Ci zaczepkę!
+main.version = Linkora {0}
+options.signedinas = Zalogowano jako {0}

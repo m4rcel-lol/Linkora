@@ -21,10 +21,13 @@ namespace WLMClient.UI.Controls
     /// </summary>
     class ContactRow : Border
     {
-        public const double RowHeight = 42;
+        public const double RowHeight = 46;
+
+        /// <summary>How tall the framed picture is drawn; the artwork is 68x66.</summary>
+        private const double FrameHeight = 40;
 
         private readonly Image avatar;
-        private readonly Border avatarFrame;
+        private readonly Image avatarFrame;
         private readonly TextBlock nameBlock;
         private readonly TextBlock secondBlock;
 
@@ -49,26 +52,42 @@ namespace WLMClient.UI.Controls
             HorizontalAlignment = HorizontalAlignment.Stretch;
             Cursor = new Cursor(StandardCursorType.Arrow);
 
+            // Laid out at the artwork's own size and scaled as a whole, so the picture keeps its
+            // place inside the frame exactly as it does on the main window.
             avatar = new Image
             {
-                Stretch = Stretch.UniformToFill,
-                Width = 28,
-                Height = 28
+                Stretch = Stretch.Fill,
+                Width = Resource.Images.Attributes.AVATAR_FRAME_SMALL_AVATAR_SIZE,
+                Height = Resource.Images.Attributes.AVATAR_FRAME_SMALL_AVATAR_SIZE,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
             };
 
             RenderOptions.SetBitmapInterpolationMode(avatar, BitmapInterpolationMode.HighQuality);
 
-            avatarFrame = new Border
+            avatarFrame = new Image
             {
-                Width = 32,
-                Height = 32,
-                BorderThickness = new Thickness(2),
-                CornerRadius = new CornerRadius(3),
-                Margin = new Thickness(6, 0, 6, 0),
+                Stretch = Stretch.None,
+                Width = Resource.Images.Attributes.AVATAR_FRAME_SMALL_WIDTH,
+                Height = Resource.Images.Attributes.AVATAR_FRAME_SMALL_HEIGHT
+            };
+
+            Grid framed = new Grid
+            {
+                Width = Resource.Images.Attributes.AVATAR_FRAME_SMALL_WIDTH,
+                Height = Resource.Images.Attributes.AVATAR_FRAME_SMALL_HEIGHT
+            };
+
+            framed.Children.Add(avatar);
+            framed.Children.Add(avatarFrame);
+
+            Viewbox avatarBox = new Viewbox
+            {
+                Height = FrameHeight,
+                Stretch = Stretch.Uniform,
+                Margin = new Thickness(3, 0, 4, 0),
                 VerticalAlignment = VerticalAlignment.Center,
-                Background = Brushes.White,
-                Child = avatar,
-                ClipToBounds = true
+                Child = framed
             };
 
             nameBlock = new TextBlock
@@ -104,29 +123,13 @@ namespace WLMClient.UI.Controls
             layout.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
             layout.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-            Grid.SetColumn(avatarFrame, 0);
+            Grid.SetColumn(avatarBox, 0);
             Grid.SetColumn(text, 1);
 
-            layout.Children.Add(avatarFrame);
+            layout.Children.Add(avatarBox);
             layout.Children.Add(text);
 
             Child = layout;
-        }
-
-        /// <summary>The colour that frames the picture, showing the contact's presence.</summary>
-        public static IBrush GetStatusBrush(UserStatus status)
-        {
-            switch (status)
-            {
-                case UserStatus.Available:
-                    return new SolidColorBrush(Color.FromRgb(0x6C, 0xB0, 0x33));
-                case UserStatus.Busy:
-                    return new SolidColorBrush(Color.FromRgb(0xC6, 0x3B, 0x36));
-                case UserStatus.Away:
-                    return new SolidColorBrush(Color.FromRgb(0xE8, 0x9B, 0x1E));
-                default:
-                    return new SolidColorBrush(Color.FromRgb(0xB4, 0xB4, 0xB4));
-            }
         }
 
         /// <summary>Applies a contact's details to the row.</summary>
@@ -134,10 +137,9 @@ namespace WLMClient.UI.Controls
         {
             UserStatus status = (UserStatus)contact.status;
 
-            avatarFrame.BorderBrush = GetStatusBrush(status);
-
-            // Offline contacts are dimmed, the way the original list greyed them out.
-            avatar.Opacity = status == UserStatus.Offline ? 0.55 : 1;
+            // The same artwork the signed in user's own picture uses, so presence reads the same
+            // way everywhere in the application.
+            avatarFrame.Source = LoadResource.GetAvatarFrameFromStatus(status, Data.Enums.AvatarSize.Small);
 
             nameBlock.Text = contact.name;
             Data.TextParser.ParseText(nameBlock, false);

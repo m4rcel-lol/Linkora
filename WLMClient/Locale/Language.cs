@@ -323,6 +323,7 @@ namespace WLMClient.Locale
             { "main.connectedto", "Connected to {0}" },
             { "main.addfriend", "Add a friend..." },
             { "main.connectedto.tooltip", "The Linkora server you are signed in to" },
+            { "main.version", "Linkora {0}" },
 
             { "menu.available", "Available" },
             { "menu.busy", "Busy" },
@@ -370,6 +371,7 @@ namespace WLMClient.Locale
             { "options.newavatar", "New Avatar" },
             { "options.displayname", "Display name" },
             { "options.language", "Language" },
+            { "options.signedinas", "Signed in as {0}" },
             { "options.avatar.disabled.title", "Unable to change avatar." },
             { "options.avatar.disabled.text", "Changing avatar has been disabled." },
             { "options.avatar.failed", "Failed to upload imagine." },

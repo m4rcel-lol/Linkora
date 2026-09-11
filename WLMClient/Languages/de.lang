@@ -86,3 +86,5 @@ error.signup.title = Serveradresse erforderlich
 notification.signedin = hat sich gerade angemeldet.
 notification.sentfile = hat dir eine Datei gesendet.
 notification.sentnudge = Hat dir einen Anstupser gesendet!
+main.version = Linkora {0}
+options.signedinas = Angemeldet als {0}

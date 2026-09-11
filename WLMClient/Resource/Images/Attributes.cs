@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +15,9 @@ namespace WLMClient.Resource.Images
         public static int AVATAR_FRAME_HEIGHT = 126;
         public static int AVATAR_FRAME_SMALL_WIDTH = 68;
         public static int AVATAR_FRAME_SMALL_HEIGHT = 66;
+
+        /// <summary>Size of the picture that shows through the small frame's window.</summary>
+        public static int AVATAR_FRAME_SMALL_AVATAR_SIZE = 50;
 
         public static int AVATAR_FRAME_STATUS_OFFLINE = 0;
         public static int AVATAR_FRAME_STATUS_BUSY = 140;

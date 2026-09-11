@@ -39,7 +39,11 @@ mkdir -p "$DIST"
 
 APP_NAME="Linkora"
 BUNDLE_ID="net.linkora.client"
-VERSION="1.0.0"
+VERSION="1.1.0"
+
+# Stamped into the binaries and shown at the foot of the client's window.
+BUILD_STAMP="$(date +%Y%m%d)"
+INFORMATIONAL_VERSION="${VERSION}+build.${BUILD_STAMP}"
 
 publish() {
     local project="$1" rid="$2" out="$3"
@@ -50,6 +54,7 @@ publish() {
         --self-contained true \
         -p:DebugType=none \
         -p:DebugSymbols=false \
+        -p:InformationalVersion="$INFORMATIONAL_VERSION" \
         --output "$out" \
         --nologo --verbosity quiet
 }
@@ -64,6 +69,7 @@ publish_portable() {
         --configuration Release \
         -p:DebugType=none \
         -p:DebugSymbols=false \
+        -p:InformationalVersion="$INFORMATIONAL_VERSION" \
         --output "$out" \
         --nologo --verbosity quiet
 }

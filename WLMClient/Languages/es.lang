@@ -86,3 +86,5 @@ error.signup.title = Falta la dirección del servidor
 notification.signedin = ha iniciado sesión.
 notification.sentfile = te ha enviado un archivo.
 notification.sentnudge = ¡Te ha enviado un zumbido!
+main.version = Linkora {0}
+options.signedinas = Sesión iniciada como {0}

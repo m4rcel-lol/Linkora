@@ -119,6 +119,8 @@ namespace WLMClient.UI.Controls
             menuItemArrowOptions.Header = Language.Get("menu.options");
             menuItemArrowExit.Header = Language.Get("menu.exit");
 
+            txtVersion.Text = Language.Format("main.version", Config.AppVersion.Display);
+
             ToolTip.SetTip(btnAddFriend, Language.Get("main.addfriend"));
             ToolTip.SetTip(txtConnectedTo, Language.Get("main.connectedto.tooltip"));
 
