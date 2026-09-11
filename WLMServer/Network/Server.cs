@@ -31,7 +31,7 @@ namespace WLMServer.Network
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private PacketHandler authentication, addNewContact, addNewContactResponse, personalUserUpdate,
             deleteAndBlockContact, transferMessage, transferNudge, transferWritingStatus, transferFile,
-            changeUsername, transferCall;
+            changeUsername, transferCall, transferVoice;
         private AvatarHttpServer avatarHttpServer;
         public AccountManager accountManager;
 
@@ -50,6 +50,7 @@ namespace WLMServer.Network
             transferFile = new PacketHandling.TransferFile(this);
             changeUsername = new PacketHandling.ChangeUsername(this);
             transferCall = new PacketHandling.TransferCall(this);
+            transferVoice = new PacketHandling.TransferVoice(this);
 
             accountManager = new AccountManager();
 
@@ -307,6 +308,23 @@ namespace WLMServer.Network
             lock (activeCalls)
             {
                 return activeCalls.ContainsKey(userId.Trim());
+            }
+        }
+
+        /// <summary>Whether these two are on a call with each other right now.</summary>
+        public bool IsCallBetween(string first, string second)
+        {
+            if (string.IsNullOrWhiteSpace(first) || string.IsNullOrWhiteSpace(second))
+            {
+                return false;
+            }
+
+            lock (activeCalls)
+            {
+                string peer;
+
+                return activeCalls.TryGetValue(first.Trim(), out peer) &&
+                    string.Equals(peer, second.Trim(), StringComparison.OrdinalIgnoreCase);
             }
         }
 

@@ -17,6 +17,8 @@ namespace WLMClient.Locale
     static class CallManager
     {
         private static CallWindow current;
+        private static Compat.Platform.LoopingSound ringtone;
+        private static Audio.VoiceSession voice;
 
         /// <summary>Whether a call is being set up or is under way.</summary>
         public static bool IsBusy
@@ -52,7 +54,11 @@ namespace WLMClient.Locale
                 return;
             }
 
+            StopRingtone();
+
             Network.Client.SendCallSignal(contactId, CallSignalType.accept);
+
+            StartVoice(contactId);
 
             current.SetState(CallState.Connected);
         }
@@ -63,6 +69,9 @@ namespace WLMClient.Locale
         /// </summary>
         public static void LocalHangUp(string contactId, CallState previousState)
         {
+            StopRingtone();
+            StopVoice();
+
             CallSignalType signal = previousState == CallState.Ringing
                 ? CallSignalType.decline
                 : CallSignalType.end;
@@ -86,6 +95,8 @@ namespace WLMClient.Locale
                     case CallSignalType.accept:
                         if (Matches(signal.id))
                         {
+                            StartVoice(signal.id);
+
                             current.SetState(CallState.Connected);
                         }
 
@@ -132,7 +143,8 @@ namespace WLMClient.Locale
 
             current = Open(contact, true);
 
-            Resource.Sounds.Player.PlaySound(Resource.Sounds.Identifiers.ONLINE);
+            // Rings until the call is answered, declined or given up on.
+            ringtone = Resource.Sounds.Player.StartLoop(Resource.Sounds.Identifiers.RING);
 
             Notification.NotificationManager.Showpopup(contact.name, Language.Get("call.incoming"), null);
         }
@@ -150,6 +162,9 @@ namespace WLMClient.Locale
             {
                 return;
             }
+
+            StopRingtone();
+            StopVoice();
 
             CallWindow window = current;
             current = null;
@@ -170,15 +185,84 @@ namespace WLMClient.Locale
 
         private static void Closed(CallWindow window)
         {
+            StopRingtone();
+            StopVoice();
+
             if (ReferenceEquals(current, window))
             {
                 current = null;
             }
         }
 
+        /// <summary>Opens the microphone and speakers for a call that has just connected.</summary>
+        private static void StartVoice(string contactId)
+        {
+            StopVoice();
+
+            Audio.VoiceSession session = new Audio.VoiceSession(contactId);
+            session.Start();
+
+            voice = session;
+
+            if (current != null)
+            {
+                current.ShowAudioState(session.HasMicrophone, session.HasSpeakers);
+            }
+        }
+
+        private static void StopVoice()
+        {
+            Audio.VoiceSession session = voice;
+            voice = null;
+
+            if (session != null)
+            {
+                session.Dispose();
+            }
+        }
+
+        /// <summary>Hands a frame of call audio to playback.</summary>
+        public static void ReceiveVoice(VoiceFrame frame)
+        {
+            Audio.VoiceSession session = voice;
+
+            if (session == null || frame == null)
+            {
+                return;
+            }
+
+            session.Receive(frame.data);
+        }
+
+        /// <summary>Mutes or unmutes the microphone for the call in progress.</summary>
+        public static void SetMuted(bool muted)
+        {
+            Audio.VoiceSession session = voice;
+
+            if (session != null)
+            {
+                session.Muted = muted;
+            }
+        }
+
+        /// <summary>Silences the ringtone, whatever ended the ringing.</summary>
+        private static void StopRingtone()
+        {
+            Compat.Platform.LoopingSound sound = ringtone;
+            ringtone = null;
+
+            if (sound != null)
+            {
+                sound.Stop();
+            }
+        }
+
         /// <summary>Drops any call, used when the connection to the server goes away.</summary>
         public static void Reset()
         {
+            StopRingtone();
+            StopVoice();
+
             CallWindow window = current;
             current = null;
 

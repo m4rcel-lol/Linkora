@@ -12,7 +12,7 @@ A Windows Live Messenger style instant messenger, running on **macOS**, **Linux*
 + Avatars / profile pictures shown in the contact list
 + Interface in your own language
 + Light and dark themes
-+ Calls (setup and ringing; audio and video not carried yet)
++ Voice calls
 + Quick Message
 + Emoticons
 + Web Registration
@@ -348,22 +348,33 @@ partial translation is perfectly usable.
 
 ---
 
-# Calls
+# Voice calls
 
-The phone button in a conversation places a call. The call window is the familiar one: the other
-person's picture and name on a dark stage, a self view tile, and a control bar with microphone,
-camera, screen sharing and hang up.
+The phone button in a conversation places a call. The other side rings, and once they answer you
+can talk. The call window shows who you are speaking to, how long for, and three controls: answer,
+mute and hang up.
 
-**What works today.** Placing a call, ringing the other side, answering, declining, hanging up,
-and the call timer. The server keeps track of who is on a call, so a second caller is told the
-line is busy rather than making someone's client ring twice, and calling somebody who is not
-signed in says so. If a client disappears mid call the other side is told the call ended rather
-than being left on a call that cannot finish.
+Audio is captured and played through OpenAL, which ships with the client, so nothing has to be
+installed on the machine. It is 16 kHz mono encoded as G.711 mu-law, about 128 kbit/s each way,
+carried over the same encrypted connection as everything else. The server only passes audio
+between two people who are actually on a call together.
 
-**What does not work yet.** No audio, camera or screen sharing is carried. .NET has no built in
-capture for any of them on any platform, so each needs a native media library bundled per
-platform. Those buttons are dimmed and say as much when pressed, rather than looking usable and
-doing nothing.
+The server also tracks who is on a call, so a second caller is told the line is busy rather than
+making someone's client ring twice, and calling somebody who is not signed in says so. If a client
+disappears mid call the other side is told the call ended rather than being left on a call that
+cannot finish.
+
+On macOS the first call asks for microphone permission. If no microphone or output is found the
+call still connects and says which one is missing.
+
+**Not included.** Camera and screen sharing. Those need video capture and encoding, which is a
+much larger piece of work than audio, so the call window does not pretend to offer them.
+
+### The ringtone
+
+`WLMClient/Content/WAV/ring.wav` is what plays for an incoming call, and it repeats until the call
+is answered, declined or given up on. Replace that file to change it. Keep it as a WAV: the
+platform players that ship with macOS and Linux do not all read Ogg or MP3.
 
 ---
 

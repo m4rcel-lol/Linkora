@@ -120,3 +120,7 @@ call.screenshare.unavailable = Bildschirm teilen ist noch nicht angebunden
 call.microphone.unavailable = Der Ton ist noch nicht angebunden
 call.media.unavailable.title = Noch nicht verfügbar
 call.media.unavailable.text = Anrufe werden aufgebaut und klingeln bereits, aber Ton, Kamera und Bildschirmfreigabe werden noch nicht übertragen.
+call.unmute = Stummschaltung aufheben
+call.audio.nomicrophone = Verbunden, aber kein Mikrofon gefunden
+call.audio.nospeakers = Verbunden, aber keine Audioausgabe gefunden
+call.audio.none = Verbunden, aber kein Audiogerät gefunden

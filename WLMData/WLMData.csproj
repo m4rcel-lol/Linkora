@@ -20,6 +20,7 @@
     <Compile Include="Data\Packets\Message.cs" />
     <Compile Include="Data\Packets\UserInfo.cs" />
     <Compile Include="Data\Packets\UsernameChangeResult.cs" />
+    <Compile Include="Data\Packets\VoiceFrame.cs" />
     <Compile Include="Data\Packets\WritingStatus.cs" />
     <Compile Include="Data\Serializer.cs" />
     <Compile Include="Enums\CallSignalType.cs" />

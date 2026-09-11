@@ -43,11 +43,12 @@ namespace WLMClient.UI.Windows
 
         private Button btnAccept;
         private Button btnMicrophone;
-        private Button btnCamera;
-        private Button btnScreenShare;
         private Button btnHangUp;
 
         private bool microphoneMuted;
+
+        /// <summary>Kept so the call timer does not overwrite a missing device warning.</summary>
+        private string audioNotice;
 
         /// <summary>Raised when the window is finished with, so the manager can forget it.</summary>
         public event Action<CallWindow> Finished;
@@ -104,18 +105,9 @@ namespace WLMClient.UI.Windows
 
         private void BuildControls()
         {
-            btnAccept = AddControl("call.accept", Icons.Phone, Colors.SeaGreen, OnAccept);
-
-            btnMicrophone = AddControl("call.microphone", Icons.Microphone, Colors.DimGray, OnMicrophone);
-            btnCamera = AddControl("call.camera", Icons.Camera, Colors.DimGray, OnUnavailableMedia);
-            btnScreenShare = AddControl("call.screenshare", Icons.ScreenShare, Colors.DimGray, OnUnavailableMedia);
-
+            btnAccept = AddControl("call.accept", Icons.Phone, Color.FromRgb(0x3D, 0xA5, 0x5C), OnAccept);
+            btnMicrophone = AddControl("call.microphone", Icons.Microphone, Color.FromRgb(0x3A, 0x3F, 0x48), OnMicrophone);
             btnHangUp = AddControl("call.hangup", Icons.HangUp, Color.FromRgb(0xC6, 0x3B, 0x36), OnHangUp);
-
-            // Nothing carries media yet, so these say so instead of looking usable.
-            MarkUnavailable(btnCamera, "call.camera.unavailable");
-            MarkUnavailable(btnScreenShare, "call.screenshare.unavailable");
-            MarkUnavailable(btnMicrophone, "call.microphone.unavailable");
         }
 
         private Button AddControl(string tooltipKey, string iconData, Color background, Action action)
@@ -153,13 +145,6 @@ namespace WLMClient.UI.Windows
             return button;
         }
 
-        /// <summary>Dims a control and says why it does nothing yet.</summary>
-        private static void MarkUnavailable(Button button, string tooltipKey)
-        {
-            button.Opacity = 0.45;
-
-            ToolTip.SetTip(button, Language.Get(tooltipKey));
-        }
 
         private void ShowAvatar()
         {
@@ -215,7 +200,6 @@ namespace WLMClient.UI.Windows
                     break;
             }
 
-            txtSelfView.Text = Language.Get("call.selfview.off");
         }
 
         /// <summary>Shows how long the call has been connected, as a call window does.</summary>
@@ -223,9 +207,11 @@ namespace WLMClient.UI.Windows
         {
             TimeSpan elapsed = DateTime.UtcNow - connectedAt;
 
-            txtState.Text = elapsed.TotalHours >= 1
+            string time = elapsed.TotalHours >= 1
                 ? elapsed.ToString(@"h\:mm\:ss")
                 : elapsed.ToString(@"m\:ss");
+
+            txtState.Text = string.IsNullOrEmpty(audioNotice) ? time : time + "  ·  " + audioNotice;
         }
 
         /// <summary>Shows why a call finished, then closes shortly after.</summary>
@@ -277,16 +263,37 @@ namespace WLMClient.UI.Windows
         {
             microphoneMuted = !microphoneMuted;
 
-            btnMicrophone.Background = new SolidColorBrush(
-                microphoneMuted ? Color.FromRgb(0xC6, 0x3B, 0x36) : Colors.DimGray);
+            CallManager.SetMuted(microphoneMuted);
+
+            btnMicrophone.Background = new SolidColorBrush(microphoneMuted
+                ? Color.FromRgb(0xC6, 0x3B, 0x36)
+                : Color.FromRgb(0x3A, 0x3F, 0x48));
+
+            ToolTip.SetTip(btnMicrophone,
+                Language.Get(microphoneMuted ? "call.unmute" : "call.microphone"));
         }
 
-        private void OnUnavailableMedia()
+        /// <summary>
+        /// Says so when a call connected without a working microphone or output, rather than
+        /// leaving the user wondering why nobody can hear them.
+        /// </summary>
+        public void ShowAudioState(bool hasMicrophone, bool hasSpeakers)
         {
-            Compat.MessageBox.Show(Language.Get("call.media.unavailable.text"),
-                Language.Get("call.media.unavailable.title"),
-                Compat.MessageBoxButton.OK, Compat.MessageBoxImage.Information);
+            if (hasMicrophone && hasSpeakers)
+            {
+                return;
+            }
+
+            string key = !hasMicrophone && !hasSpeakers
+                ? "call.audio.none"
+                : (!hasMicrophone ? "call.audio.nomicrophone" : "call.audio.nospeakers");
+
+            audioNotice = Language.Get(key);
+            txtState.Text = audioNotice;
+
+            btnMicrophone.Opacity = hasMicrophone ? 1 : 0.45;
         }
+
 
         #endregion
 
@@ -308,11 +315,7 @@ namespace WLMClient.UI.Windows
                 "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 " +
                 "5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z";
 
-            public const string Camera =
-                "M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z";
 
-            public const string ScreenShare =
-                "M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z";
         }
     }
 }

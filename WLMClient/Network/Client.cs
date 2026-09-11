@@ -27,7 +27,7 @@ namespace WLMClient.Network
         public static ConnectionInfo connectionInfo { get; set; }
 
         private static PacketHandler connectionedClosed, authentication, receiveContact, receiveMessage, receiveNudge,
-            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile, receiveUsernameChange, receiveCallSignal;
+            receiveContactDelete, receiveWritingStatus, receiveFriendRequest, personalUserUpdate, receiveFile, receiveUsernameChange, receiveCallSignal, receiveVoiceFrame;
 
         public static void Load(MainWindow mainWindow)
         {
@@ -43,6 +43,7 @@ namespace WLMClient.Network
             receiveFile = new ReceiveFile(mainWindow);
             receiveUsernameChange = new ReceiveUsernameChange(mainWindow);
             receiveCallSignal = new ReceiveCallSignal(mainWindow);
+            receiveVoiceFrame = new ReceiveVoiceFrame(mainWindow);
 
             Personal.USER_CONTACTS = new List<UserInfo>();
             Personal.USER_INFO = null;
@@ -147,6 +148,12 @@ namespace WLMClient.Network
         public static void SendFile(string userID, string fileName, byte[] data)
         {
             SendPacket(PacketName.sendFileTransfer.ToString(), new FileTransfer(userID, fileName, data));
+        }
+
+        /// <summary>Sends a slice of call audio to the other party.</summary>
+        public static void SendVoiceFrame(string userID, byte[] data)
+        {
+            SendPacket(PacketName.sendVoiceFrame.ToString(), new VoiceFrame(userID, data));
         }
 
         /// <summary>Sends one step of a call's setup or teardown to a contact.</summary>
